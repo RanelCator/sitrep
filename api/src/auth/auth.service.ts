@@ -177,24 +177,47 @@ export class AuthService {
     })
   }
 
+  // private setAuthCookies(
+  //   res: Response,
+  //   accessToken: string,
+  //   refreshToken: string,
+  // ) {
+  //   const isProduction = this.config.get<string>('NODE_ENV') === 'production'
+
+  //   res.cookie('access_token', accessToken, {
+  //     httpOnly: true,
+  //     secure: isProduction,
+  //     sameSite: isProduction ? 'none' : 'lax',
+  //     path: '/',
+  //   })
+
+  //   res.cookie('refresh_token', refreshToken, {
+  //     httpOnly: true,
+  //     secure: isProduction,
+  //     sameSite: isProduction ? 'none' : 'lax',
+  //     path: '/',
+  //   })
+  // }
+
   private setAuthCookies(
     res: Response,
     accessToken: string,
     refreshToken: string,
   ) {
     const isProduction = this.config.get<string>('NODE_ENV') === 'production'
+    const isHttps = this.config.get<string>('COOKIE_SECURE') === 'true'
 
     res.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
+      secure: isHttps,
+      sameSite: isHttps ? 'none' : 'lax',
       path: '/',
     })
 
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
+      secure: isHttps,
+      sameSite: isHttps ? 'none' : 'lax',
       path: '/',
     })
   }

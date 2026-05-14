@@ -68,13 +68,13 @@ export function ReportsPage() {
   const total =
     reportsQuery.data?.meta?.total ??
     0
-
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "")
 const columns = useMemo(
   () =>
     getReportsColumns({
       onView: (item) => {
         window.open(
-          `/reports/${item._id}/view`,
+          `${basePath}/reports/${item._id}/view`,
           "_blank",
         )
       },

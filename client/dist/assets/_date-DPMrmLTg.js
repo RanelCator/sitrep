@@ -1,0 +1,1 @@
+import{r as e}from"./useRouter-WzkmP6Qu.js";import{i as t}from"./index-CB_TSxBu.js";var n=e();function r(){let{date:e}=t({from:`/_authenticated/reports/$date`});return(0,n.jsxs)(`div`,{className:`space-y-4`,children:[(0,n.jsx)(`h1`,{className:`text-2xl font-bold`,children:`Daily SitRep Report`}),(0,n.jsx)(`p`,{children:e})]})}var i=r;export{i as component};

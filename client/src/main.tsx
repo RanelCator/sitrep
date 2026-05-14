@@ -1,5 +1,6 @@
 // src/main.tsx
 import { StrictMode } from "react"
+import '@fontsource/jetbrains-mono/400.css'
 import ReactDOM from "react-dom/client"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { RouterProvider } from "@tanstack/react-router"

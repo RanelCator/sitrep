@@ -10,8 +10,6 @@ import type {
   SortingState,
 } from "@tanstack/react-table"
 
-import { useNavigate } from "@tanstack/react-router"
-
 import {
   Calendar,
   FilePlus2,
@@ -37,7 +35,6 @@ import { useGenerateDailyReportMutation } from "@/features/reports/hooks/useRepo
 import { getReportsColumns } from "@/features/reports/tables/reports.columns"
 
 export function ReportsPage() {
-  const navigate = useNavigate()
 
   const [reportDate, setReportDate] =
     useState(

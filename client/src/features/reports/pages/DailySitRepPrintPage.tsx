@@ -970,21 +970,6 @@ function MetricBox({
   )
 }
 
-function CompositionItem({
-  label,
-  value,
-}: {
-  label: string
-  value?: number
-}) {
-  return (
-    <div className="rounded-lg bg-slate-100 p-2 text-center">
-      <p className="text-[9px] font-bold uppercase">{label}</p>
-      <p className="text-[18px] font-black">{value ?? 0}</p>
-    </div>
-  )
-}
-
 function EmptyRows({
   columns,
   rows,

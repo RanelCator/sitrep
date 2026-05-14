@@ -3,10 +3,12 @@ import {
   getCoreRowModel,
   useReactTable,
   type ColumnDef,
+  type OnChangeFn,
   type PaginationState,
   type SortingState,
 } from "@tanstack/react-table"
 
+import { Button } from "@/shared/components/ui/button"
 import {
   Table,
   TableBody,
@@ -16,18 +18,16 @@ import {
   TableRow,
 } from "@/shared/components/ui/table"
 
-import { Button } from "@/shared/components/ui/button"
-
 interface ServerTableProps<TData> {
   data: TData[]
   columns: ColumnDef<TData>[]
   total: number
 
   pagination: PaginationState
-  onPaginationChange: (pagination: PaginationState) => void
+  onPaginationChange: OnChangeFn<PaginationState>
 
   sorting: SortingState
-  onSortingChange: (sorting: SortingState) => void
+  onSortingChange: OnChangeFn<SortingState>
 
   isLoading?: boolean
 }
@@ -36,13 +36,10 @@ export function ServerTable<TData>({
   data,
   columns,
   total,
-
   pagination,
   onPaginationChange,
-
   sorting,
   onSortingChange,
-
   isLoading,
 }: ServerTableProps<TData>) {
   const table = useReactTable({
@@ -89,10 +86,7 @@ export function ServerTable<TData>({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-32 text-center"
-                >
+                <TableCell colSpan={columns.length} className="h-32 text-center">
                   Loading...
                 </TableCell>
               </TableRow>
@@ -111,10 +105,7 @@ export function ServerTable<TData>({
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-32 text-center"
-                >
+                <TableCell colSpan={columns.length} className="h-32 text-center">
                   No records found.
                 </TableCell>
               </TableRow>
@@ -124,9 +115,7 @@ export function ServerTable<TData>({
       </div>
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Total Records: {total}
-        </p>
+        <p className="text-sm text-muted-foreground">Total Records: {total}</p>
 
         <div className="flex items-center gap-2">
           <Button

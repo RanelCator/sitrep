@@ -1,7 +1,10 @@
 // src/sql-server/sql-server-auth.service.ts
+
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import * as sql from 'mssql'
+
+export type SqlServerConnectionKey = 'CBMS' | 'PMIS' | 'PALARO'
 
 export interface SqlServerUser {
   id: string
@@ -10,33 +13,60 @@ export interface SqlServerUser {
   isActive: boolean
 }
 
+export interface SqlServerPalaroPlayer {
+  id: string
+  firstName: string
+  middleInitial?: string
+  lastName: string
+  sports?: string
+  division?: string
+  regionName?: string
+}
+
+export interface SqlServerArsUser {
+  id: string
+  eid: string
+  username: string
+  name: string
+}
+
 @Injectable()
 export class SqlServerAuthService implements OnModuleDestroy {
   private readonly logger = new Logger(SqlServerAuthService.name)
-  private pool?: sql.ConnectionPool
+
+  private readonly pools = new Map<
+    SqlServerConnectionKey,
+    sql.ConnectionPool
+  >()
 
   constructor(private readonly config: ConfigService) {}
 
-private getConnectionConfig(): sql.config {
-  const isLocal =
-    this.config.get<string>('LOCAL') === 'TRUE'
+private getConnectionConfig(
+  key: SqlServerConnectionKey,
+): sql.config {
+  const prefix = `SQLSERVER_${key}`
 
-  if (isLocal) {
+  const useSqlAuth =
+    this.config.get<string>(
+      `${prefix}_LOCAL`,
+    ) === 'TRUE'
+
+  if (useSqlAuth) {
     return {
       server: this.config.getOrThrow<string>(
-        'SQLSERVER_CBMS_HOST',
+        `${prefix}_HOST`,
       ),
 
       database: this.config.getOrThrow<string>(
-        'SQLSERVER_CBMS_DB',
+        `${prefix}_DB`,
       ),
 
       user: this.config.getOrThrow<string>(
-        'SQLSERVER_CBMS_USER',
+        `${prefix}_USER`,
       ),
 
       password: this.config.getOrThrow<string>(
-        'SQLSERVER_CBMS_PASS',
+        `${prefix}_PASS`,
       ),
 
       options: {
@@ -48,11 +78,11 @@ private getConnectionConfig(): sql.config {
 
   return {
     server: this.config.getOrThrow<string>(
-      'SQLSERVER_CBMS_HOST',
+      `${prefix}_HOST`,
     ),
 
     database: this.config.getOrThrow<string>(
-      'SQLSERVER_CBMS_DB',
+      `${prefix}_DB`,
     ),
 
     options: {
@@ -66,37 +96,48 @@ private getConnectionConfig(): sql.config {
       options: {
         domain:
           this.config.get<string>(
-            'SQLSERVER_CBMS_DOMAIN',
+            `${prefix}_DOMAIN`,
           ) ?? '',
 
-        userName: this.config.getOrThrow<string>(
-          'SQLSERVER_CBMS_USER',
-        ),
+        userName:
+          this.config.getOrThrow<string>(
+            `${prefix}_USER`,
+          ),
 
-        password: this.config.getOrThrow<string>(
-          'SQLSERVER_CBMS_PASS',
-        ),
+        password:
+          this.config.getOrThrow<string>(
+            `${prefix}_PASS`,
+          ),
       },
     },
   }
 }
 
-  private async getPool(): Promise<sql.ConnectionPool> {
-    if (this.pool?.connected) {
-      return this.pool
+  private async getPool(
+    key: SqlServerConnectionKey,
+  ): Promise<sql.ConnectionPool> {
+    const existingPool = this.pools.get(key)
+
+    if (existingPool?.connected) {
+      return existingPool
     }
 
-    this.pool = await new sql.ConnectionPool(this.getConnectionConfig()).connect()
-    this.logger.log('Connected to SQL Server COVID19')
+    const pool = await new sql.ConnectionPool(
+      this.getConnectionConfig(key),
+    ).connect()
 
-    return this.pool
+    this.pools.set(key, pool)
+
+    this.logger.log(`Connected to SQL Server ${key}`)
+
+    return pool
   }
 
   async validateUser(
     username: string,
     password: string,
   ): Promise<SqlServerUser | null> {
-    const pool = await this.getPool()
+    const pool = await this.getPool('CBMS')
 
     const result = await pool
       .request()
@@ -122,9 +163,7 @@ private getConnectionConfig(): sql.config {
 
     const user = result.recordset[0]
 
-    if (!user) {
-      return null
-    }
+    if (!user) return null
 
     return {
       id: String(user.id),
@@ -134,9 +173,91 @@ private getConnectionConfig(): sql.config {
     }
   }
 
-  async onModuleDestroy() {
-    if (this.pool?.connected) {
-      await this.pool.close()
+  async findPalaroPlayerById(
+    id: string,
+  ): Promise<SqlServerPalaroPlayer | null> {
+    const pool = await this.getPool('PALARO')
+
+    const result = await pool
+      .request()
+      .input('id', sql.VarChar, id)
+      .query(`
+        SELECT TOP 1
+          pp.[ID],
+          pp.[FirstName],
+          pp.[MiddleInitial],
+          pp.[LastName],
+          sp.Sport AS Sports,
+          sd.Division AS Division,
+          sr.[Region] AS RegionName
+        FROM [Palaro2026].[dbo].[ProfilePlayers] pp
+        LEFT JOIN [Palaro2026].[dbo].[Schools] s
+          ON pp.[SchoolID] = s.[ID]
+        LEFT JOIN [Palaro2026].[dbo].[SchoolRegions] sr
+          ON s.[SchoolRegionID] = sr.[ID]
+        LEFT JOIN [Palaro2026].[dbo].[sports] sp
+          ON pp.SportID = sp.ID
+        LEFT JOIN [Palaro2026].[dbo].[SchoolLevels] sl
+          ON s.SchoolLevelsID = sl.ID
+        LEFT JOIN [Palaro2026].[dbo].[SchoolDivisions] sd
+          ON s.SchoolDivisionID = sd.ID
+        WHERE pp.[ID] = @id
+      `)
+
+    const player = result.recordset[0]
+
+    if (!player) return null
+
+    return {
+      id: String(player.ID),
+      firstName: player.FirstName ?? '',
+      middleInitial: player.MiddleInitial ?? '',
+      lastName: player.LastName ?? '',
+      sports: player.Sports ?? '',
+      division: player.Division ?? '',
+      regionName: player.RegionName ?? '',
     }
+  }
+
+  async findArsUserById(id: number): Promise<SqlServerArsUser | null> {
+  const pool = await this.getPool('CBMS')
+
+  const result = await pool
+    .request()
+    .input('id', sql.Int, id)
+    .query(`
+      SELECT TOP 1
+        a.[UserId] AS id,
+        a.[Eid] AS eid,
+        a.[Username] AS username,
+        a.[FullName] AS name
+      FROM [pptf].[dbo].[TblUsers] a
+      JOIN [pptf].[dbo].[TblUsersArs] b
+        ON b.UserId = a.UserId
+      WHERE b.ArId IN (10, 11)
+        AND b.HasAccess = 1
+        AND a.[UserId] = @id
+    `)
+
+  const user = result.recordset[0]
+
+  if (!user) return null
+
+  return {
+    id: String(user.id),
+    eid: String(user.eid ?? ''),
+    username: user.username,
+    name: user.name,
+  }
+}
+
+  async onModuleDestroy() {
+    for (const pool of this.pools.values()) {
+      if (pool.connected) {
+        await pool.close()
+      }
+    }
+
+    this.pools.clear()
   }
 }

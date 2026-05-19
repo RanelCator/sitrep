@@ -14,6 +14,7 @@ import { AuthService } from '@/auth/auth.service'
 import { LoginDto } from '@/auth/dto/login.dto'
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard'
 import { RefreshTokenGuard } from '@/auth/guards/refresh-token.guard'
+import { ArsLoginDto } from './dto/ars-login.dto'
 
 @Controller('auth')
 export class AuthController {
@@ -55,5 +56,10 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.authService.logout(req.user as any, res)
+  }
+
+  @Post('ars-login')
+  arsLogin(@Body() dto: ArsLoginDto, @Res({ passthrough: true }) res: Response) {
+    return this.authService.arsLogin(dto.id, res)
   }
 }

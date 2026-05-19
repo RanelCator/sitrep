@@ -1,4 +1,5 @@
 // src/auth/auth.service.ts
+
 import {
   Injectable,
   UnauthorizedException,
@@ -63,7 +64,11 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user)
 
-    await this.saveRefreshToken(user.id, tokens.refreshToken, tokens.refreshTokenId)
+    await this.saveRefreshToken(
+      user.id,
+      tokens.refreshToken,
+      tokens.refreshTokenId,
+    )
 
     this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken)
 
@@ -74,6 +79,60 @@ export class AuthService {
     return {
       success: true,
       message: 'Login successful',
+      data: {
+        user: this.toAuthUser(user),
+      },
+    }
+  }
+
+  async arsLogin(id: number, res: Response) {
+    const sqlUser =
+      await this.sqlServerAuthService.findArsUserById(id)
+
+    if (!sqlUser) {
+      throw new UnauthorizedException(
+        'User has no ARS access or does not exist.',
+      )
+    }
+
+    let user = await this.userModel.findOne({
+      sqlServerUserId: String(sqlUser.id),
+    })
+
+    if (!user) {
+      user = await this.userModel.create({
+        sqlServerUserId: String(sqlUser.id),
+        username: sqlUser.username,
+        name: sqlUser.name,
+        role: 'encoder',
+        isActive: true,
+        lastLoginAt: new Date(),
+      })
+    } else {
+      user.username = sqlUser.username
+      user.name = sqlUser.name
+      user.lastLoginAt = new Date()
+
+      await user.save()
+    }
+
+    if (!user.isActive) {
+      throw new ForbiddenException('SITREP account is inactive')
+    }
+
+    const tokens = await this.generateTokens(user)
+
+    await this.saveRefreshToken(
+      user.id,
+      tokens.refreshToken,
+      tokens.refreshTokenId,
+    )
+
+    this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken)
+
+    return {
+      success: true,
+      message: 'ARS login successful',
       data: {
         user: this.toAuthUser(user),
       },
@@ -102,7 +161,11 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user)
 
-    await this.saveRefreshToken(user.id, tokens.refreshToken, tokens.refreshTokenId)
+    await this.saveRefreshToken(
+      user.id,
+      tokens.refreshToken,
+      tokens.refreshTokenId,
+    )
 
     this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken)
 
@@ -120,8 +183,7 @@ export class AuthService {
       },
     })
 
-    res.clearCookie('access_token')
-    res.clearCookie('refresh_token')
+    this.clearAuthCookies(res)
 
     return {
       success: true,
@@ -148,12 +210,16 @@ export class AuthService {
 
     const accessToken = await this.jwtService.signAsync(accessPayload, {
       secret: this.config.getOrThrow<string>('JWT_ACCESS_SECRET'),
-      expiresIn: this.config.getOrThrow<StringValue>('JWT_ACCESS_EXPIRES_IN'),
+      expiresIn: this.config.getOrThrow<StringValue>(
+        'JWT_ACCESS_EXPIRES_IN',
+      ),
     })
 
     const refreshToken = await this.jwtService.signAsync(refreshPayload, {
       secret: this.config.getOrThrow<string>('JWT_REFRESH_SECRET'),
-      expiresIn: this.config.getOrThrow<StringValue>('JWT_REFRESH_EXPIRES_IN'),
+      expiresIn: this.config.getOrThrow<StringValue>(
+        'JWT_REFRESH_EXPIRES_IN',
+      ),
     })
 
     return {
@@ -177,49 +243,55 @@ export class AuthService {
     })
   }
 
-  // private setAuthCookies(
-  //   res: Response,
-  //   accessToken: string,
-  //   refreshToken: string,
-  // ) {
-  //   const isProduction = this.config.get<string>('NODE_ENV') === 'production'
+  private getCookieDomain() {
+    const isProduction =
+      this.config.get<string>('NODE_ENV') === 'production'
 
-  //   res.cookie('access_token', accessToken, {
-  //     httpOnly: true,
-  //     secure: isProduction,
-  //     sameSite: isProduction ? 'none' : 'lax',
-  //     path: '/',
-  //   })
+    if (!isProduction) {
+      return undefined
+    }
 
-  //   res.cookie('refresh_token', refreshToken, {
-  //     httpOnly: true,
-  //     secure: isProduction,
-  //     sameSite: isProduction ? 'none' : 'lax',
-  //     path: '/',
-  //   })
-  // }
+    return this.config.get<string>('COOKIE_DOMAIN') || undefined
+  }
 
   private setAuthCookies(
     res: Response,
     accessToken: string,
     refreshToken: string,
   ) {
-    const isProduction = this.config.get<string>('NODE_ENV') === 'production'
-    const isHttps = this.config.get<string>('COOKIE_SECURE') === 'true'
+    const isHttps =
+      this.config.get<string>('COOKIE_SECURE') === 'true'
 
-    res.cookie('access_token', accessToken, {
+    const cookieDomain = this.getCookieDomain()
+
+    const cookieOptions = {
       httpOnly: true,
       secure: isHttps,
-      sameSite: isHttps ? 'none' : 'lax',
+      sameSite: isHttps ? ('none' as const) : ('lax' as const),
+      domain: cookieDomain,
       path: '/',
-    })
+    }
 
-    res.cookie('refresh_token', refreshToken, {
+    res.cookie('access_token', accessToken, cookieOptions)
+    res.cookie('refresh_token', refreshToken, cookieOptions)
+  }
+
+  private clearAuthCookies(res: Response) {
+    const isHttps =
+      this.config.get<string>('COOKIE_SECURE') === 'true'
+
+    const cookieDomain = this.getCookieDomain()
+
+    const cookieOptions = {
       httpOnly: true,
       secure: isHttps,
-      sameSite: isHttps ? 'none' : 'lax',
+      sameSite: isHttps ? ('none' as const) : ('lax' as const),
+      domain: cookieDomain,
       path: '/',
-    })
+    }
+
+    res.clearCookie('access_token', cookieOptions)
+    res.clearCookie('refresh_token', cookieOptions)
   }
 
   private toAuthUser(user: UserDocument) {

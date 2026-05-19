@@ -13,6 +13,7 @@ import { OtherInformationModule } from './features/other-information/other-infor
 import { DashboardModule } from './features/dashboard/dashboard.module';
 import { ReportsModule } from './features/reports/reports.module';
 import { OtherDelegationModule } from './features/other-delegation/other-delegation.module';
+import { PatientConsultationReferralFormModule } from './features/patient-consultation-referral-form/patient-consultation-referral-form.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { OtherDelegationModule } from './features/other-delegation/other-delegat
     DashboardModule,
     ReportsModule,
     OtherDelegationModule,
+    PatientConsultationReferralFormModule,
   ],
   providers: [SqlServerAuthService],
 })

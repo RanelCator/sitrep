@@ -12,7 +12,6 @@ import {
   Info,
   MapPin,
   Megaphone,
-  SquareActivity,
   Trophy,
   Users,
 } from "lucide-react"

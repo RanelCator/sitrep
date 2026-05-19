@@ -24,5 +24,9 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    build: {
+      target: "es2023",
+      outDir: "publish",
+    },
   }
 })

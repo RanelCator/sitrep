@@ -1,0 +1,1 @@
+import{t as e}from"./api-D_DJ6Ew_.js";async function t(t){let{data:n}=await e.get(`/reports`,{params:t});return n}async function n(t){let{data:n}=await e.post(`/reports/daily/generate`,t);return n}async function r(t){let{data:n}=await e.get(`/reports/${t}`);return n}export{r as n,t as r,n as t};

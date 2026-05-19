@@ -1,4 +1,5 @@
 // src/features/auth/services/auth.service.ts
+
 import { api } from "@/shared/lib/api"
 
 import type {
@@ -13,6 +14,19 @@ export async function loginRequest(
   const { data } = await api.post<AuthResponse>(
     "/auth/login",
     payload,
+  )
+
+  return data
+}
+
+export async function arsLoginRequest(
+  id: number,
+): Promise<AuthResponse> {
+  const { data } = await api.post<AuthResponse>(
+    "/auth/ars-login",
+    {
+      id,
+    },
   )
 
   return data

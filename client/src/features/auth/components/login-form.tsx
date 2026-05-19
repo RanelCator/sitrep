@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router"
 import { useForm } from "@tanstack/react-form"
 
 import { useAuth } from "@/features/auth/hooks/useAuth"
+import { authStore } from "@/features/auth/services/auth-store"
 import { loginSchema } from "@/features/auth/schema/login.schema"
 
 import { alertError, alertSuccess } from "@/shared/lib/alert"
@@ -19,7 +20,11 @@ type FieldErrorItem = {
   message?: string
 }
 
-function FieldErrors({ errors }: { errors?: FieldErrorItem[] }) {
+function FieldErrors({
+  errors,
+}: {
+  errors?: FieldErrorItem[]
+}) {
   if (!errors?.length) return null
 
   const messages = errors
@@ -29,7 +34,11 @@ function FieldErrors({ errors }: { errors?: FieldErrorItem[] }) {
 
   if (!messages) return null
 
-  return <p className="text-sm text-destructive">{messages}</p>
+  return (
+    <p className="text-sm text-destructive">
+      {messages}
+    </p>
+  )
 }
 
 export function LoginForm({
@@ -45,24 +54,34 @@ export function LoginForm({
       username: "",
       password: "",
     },
+
     validators: {
       onSubmit: loginSchema,
     },
+
     onSubmit: async ({ value }) => {
       if (submitting) return
 
       setSubmitting(true)
 
       try {
-        const result = await login(value.username, value.password)
+        const result = await login(
+          value.username,
+          value.password,
+        )
 
         if (!result.success || !result.data?.user) {
           await alertError({
             title: "Login Failed",
-            text: result.message ?? "Invalid credentials.",
+            text:
+              result.message ??
+              "Invalid credentials.",
           })
+
           return
         }
+
+        await authStore.reload()
 
         await alertSuccess({
           title: "Login Successful!",
@@ -87,8 +106,12 @@ export function LoginForm({
     },
   })
 
-  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
     event.preventDefault()
+    event.stopPropagation()
+
     await form.handleSubmit()
   }
 
@@ -100,7 +123,10 @@ export function LoginForm({
     >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Login to SITREP</h1>
+          <h1 className="text-2xl font-bold">
+            Login to SITREP
+          </h1>
+
           <p className="text-sm text-muted-foreground">
             Enter your credentials to continue
           </p>
@@ -110,15 +136,24 @@ export function LoginForm({
           {(field) => (
             <Field>
               <FieldLabel>Username</FieldLabel>
+
               <Input
                 value={field.state.value}
                 onBlur={field.handleBlur}
-                onChange={(event) => field.handleChange(event.target.value)}
+                onChange={(event) =>
+                  field.handleChange(
+                    event.target.value,
+                  )
+                }
                 placeholder="Username"
                 autoComplete="username"
               />
+
               <FieldErrors
-                errors={field.state.meta.errors as FieldErrorItem[]}
+                errors={
+                  field.state.meta
+                    .errors as FieldErrorItem[]
+                }
               />
             </Field>
           )}
@@ -128,24 +163,38 @@ export function LoginForm({
           {(field) => (
             <Field>
               <FieldLabel>Password</FieldLabel>
+
               <Input
                 type="password"
                 value={field.state.value}
                 onBlur={field.handleBlur}
-                onChange={(event) => field.handleChange(event.target.value)}
+                onChange={(event) =>
+                  field.handleChange(
+                    event.target.value,
+                  )
+                }
                 placeholder="Password"
                 autoComplete="current-password"
               />
+
               <FieldErrors
-                errors={field.state.meta.errors as FieldErrorItem[]}
+                errors={
+                  field.state.meta
+                    .errors as FieldErrorItem[]
+                }
               />
             </Field>
           )}
         </form.Field>
 
         <Field>
-          <Button type="submit" disabled={submitting}>
-            {submitting ? "Logging in..." : "Login"}
+          <Button
+            type="submit"
+            disabled={submitting}
+          >
+            {submitting
+              ? "Logging in..."
+              : "Login"}
           </Button>
         </Field>
       </FieldGroup>

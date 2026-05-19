@@ -1,16 +1,14 @@
 // src/auth/auth.service.ts
 
 import {
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
-  ForbiddenException,
 } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
-import * as bcrypt from 'bcrypt'
-import { randomUUID } from 'crypto'
 import type { Response } from 'express'
 import type { StringValue } from 'ms'
 
@@ -43,38 +41,15 @@ export class AuthService {
       throw new ForbiddenException('Account is inactive')
     }
 
-    let user = await this.userModel.findOne({
+    const user = await this.findOrCreateMongoUser({
       sqlServerUserId: String(sqlUser.id),
+      username: sqlUser.username,
+      name: sqlUser.name,
     })
 
-    if (!user) {
-      user = await this.userModel.create({
-        sqlServerUserId: String(sqlUser.id),
-        username: sqlUser.username,
-        name: sqlUser.name,
-        role: 'encoder',
-        isActive: true,
-        lastLoginAt: new Date(),
-      })
-    }
+    const token = await this.generateAccessToken(user)
 
-    if (!user.isActive) {
-      throw new ForbiddenException('SITREP account is inactive')
-    }
-
-    const tokens = await this.generateTokens(user)
-
-    await this.saveRefreshToken(
-      user.id,
-      tokens.refreshToken,
-      tokens.refreshTokenId,
-    )
-
-    this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken)
-
-    await this.userModel.findByIdAndUpdate(user.id, {
-      lastLoginAt: new Date(),
-    })
+    this.setAuthCookie(res, token)
 
     return {
       success: true,
@@ -95,40 +70,15 @@ export class AuthService {
       )
     }
 
-    let user = await this.userModel.findOne({
+    const user = await this.findOrCreateMongoUser({
       sqlServerUserId: String(sqlUser.id),
+      username: sqlUser.username,
+      name: sqlUser.name,
     })
 
-    if (!user) {
-      user = await this.userModel.create({
-        sqlServerUserId: String(sqlUser.id),
-        username: sqlUser.username,
-        name: sqlUser.name,
-        role: 'encoder',
-        isActive: true,
-        lastLoginAt: new Date(),
-      })
-    } else {
-      user.username = sqlUser.username
-      user.name = sqlUser.name
-      user.lastLoginAt = new Date()
+    const token = await this.generateAccessToken(user)
 
-      await user.save()
-    }
-
-    if (!user.isActive) {
-      throw new ForbiddenException('SITREP account is inactive')
-    }
-
-    const tokens = await this.generateTokens(user)
-
-    await this.saveRefreshToken(
-      user.id,
-      tokens.refreshToken,
-      tokens.refreshTokenId,
-    )
-
-    this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken)
+    this.setAuthCookie(res, token)
 
     return {
       success: true,
@@ -139,51 +89,24 @@ export class AuthService {
     }
   }
 
-  async refresh(userPayload: any, res: Response) {
+  async me(userPayload: any) {
     const user = await this.userModel.findById(userPayload.sub)
 
-    if (!user || !user.refreshTokenHash || !user.refreshTokenId) {
-      throw new UnauthorizedException('Invalid refresh session')
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('Invalid session')
     }
-
-    if (user.refreshTokenId !== userPayload.tokenId) {
-      throw new UnauthorizedException('Invalid refresh token')
-    }
-
-    const isValidRefreshToken = await bcrypt.compare(
-      userPayload.refreshToken,
-      user.refreshTokenHash,
-    )
-
-    if (!isValidRefreshToken) {
-      throw new UnauthorizedException('Invalid refresh token')
-    }
-
-    const tokens = await this.generateTokens(user)
-
-    await this.saveRefreshToken(
-      user.id,
-      tokens.refreshToken,
-      tokens.refreshTokenId,
-    )
-
-    this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken)
 
     return {
       success: true,
-      message: 'Token refreshed',
+      message: 'Authenticated user fetched successfully',
+      data: {
+        user: this.toAuthUser(user),
+      },
     }
   }
 
-  async logout(userPayload: any, res: Response) {
-    await this.userModel.findByIdAndUpdate(userPayload.userId, {
-      $unset: {
-        refreshTokenHash: '',
-        refreshTokenId: '',
-      },
-    })
-
-    this.clearAuthCookies(res)
+  async logout(res: Response) {
+    this.clearAuthCookie(res)
 
     return {
       success: true,
@@ -191,107 +114,86 @@ export class AuthService {
     }
   }
 
-  private async generateTokens(user: UserDocument) {
-    const refreshTokenId = randomUUID()
-
-    const accessPayload = {
-      sub: user.id,
-      sqlServerUserId: user.sqlServerUserId,
-      username: user.username,
-      name: user.name,
-      role: user.role,
-      permissions: [],
-    }
-
-    const refreshPayload = {
-      sub: user.id,
-      tokenId: refreshTokenId,
-    }
-
-    const accessToken = await this.jwtService.signAsync(accessPayload, {
-      secret: this.config.getOrThrow<string>('JWT_ACCESS_SECRET'),
-      expiresIn: this.config.getOrThrow<StringValue>(
-        'JWT_ACCESS_EXPIRES_IN',
-      ),
+  private async findOrCreateMongoUser(payload: {
+    sqlServerUserId: string
+    username: string
+    name: string
+  }) {
+    let user = await this.userModel.findOne({
+      sqlServerUserId: payload.sqlServerUserId,
     })
 
-    const refreshToken = await this.jwtService.signAsync(refreshPayload, {
-      secret: this.config.getOrThrow<string>('JWT_REFRESH_SECRET'),
-      expiresIn: this.config.getOrThrow<StringValue>(
-        'JWT_REFRESH_EXPIRES_IN',
-      ),
-    })
+    if (!user) {
+      user = await this.userModel.create({
+        sqlServerUserId: payload.sqlServerUserId,
+        username: payload.username,
+        name: payload.name,
+        role: 'encoder',
+        isActive: true,
+        lastLoginAt: new Date(),
+      })
+    } else {
+      user.username = payload.username
+      user.name = payload.name
+      user.lastLoginAt = new Date()
 
-    return {
-      accessToken,
-      refreshToken,
-      refreshTokenId,
+      await user.save()
     }
+
+    if (!user.isActive) {
+      throw new ForbiddenException('SITREP account is inactive')
+    }
+
+    return user
   }
 
-  private async saveRefreshToken(
-    userId: string,
-    refreshToken: string,
-    refreshTokenId: string,
-  ) {
-    const refreshTokenHash = await bcrypt.hash(refreshToken, 12)
-
-    await this.userModel.findByIdAndUpdate(userId, {
-      refreshTokenHash,
-      refreshTokenId,
-      lastLoginAt: new Date(),
-    })
+  private async generateAccessToken(user: UserDocument) {
+    return this.jwtService.signAsync(
+      {
+        sub: user.id,
+        sqlServerUserId: user.sqlServerUserId,
+        username: user.username,
+        name: user.name,
+        role: user.role,
+        permissions: [],
+      },
+      {
+        secret: this.config.getOrThrow<string>('JWT_ACCESS_SECRET'),
+        expiresIn: this.config.getOrThrow<StringValue>(
+          'JWT_ACCESS_EXPIRES_IN',
+        ),
+      },
+    )
   }
 
-  private getCookieDomain() {
+  private getCookieOptions() {
     const isProduction =
       this.config.get<string>('NODE_ENV') === 'production'
 
-    if (!isProduction) {
-      return undefined
-    }
-
-    return this.config.get<string>('COOKIE_DOMAIN') || undefined
-  }
-
-  private setAuthCookies(
-    res: Response,
-    accessToken: string,
-    refreshToken: string,
-  ) {
-    const isHttps =
-      this.config.get<string>('COOKIE_SECURE') === 'true'
-
-    const cookieDomain = this.getCookieDomain()
-
-    const cookieOptions = {
+    return {
       httpOnly: true,
-      secure: isHttps,
-      sameSite: isHttps ? ('none' as const) : ('lax' as const),
-      domain: cookieDomain,
+      secure: isProduction,
+      sameSite: isProduction ? ('none' as const) : ('lax' as const),
+      domain: isProduction
+        ? this.config.get<string>('COOKIE_DOMAIN') || undefined
+        : undefined,
       path: '/',
     }
-
-    res.cookie('access_token', accessToken, cookieOptions)
-    res.cookie('refresh_token', refreshToken, cookieOptions)
   }
 
-  private clearAuthCookies(res: Response) {
-    const isHttps =
-      this.config.get<string>('COOKIE_SECURE') === 'true'
+  private setAuthCookie(res: Response, accessToken: string) {
+    res.cookie(
+      'access_token',
+      accessToken,
+      this.getCookieOptions(),
+    )
+  }
 
-    const cookieDomain = this.getCookieDomain()
-
-    const cookieOptions = {
-      httpOnly: true,
-      secure: isHttps,
-      sameSite: isHttps ? ('none' as const) : ('lax' as const),
-      domain: cookieDomain,
-      path: '/',
-    }
-
-    res.clearCookie('access_token', cookieOptions)
-    res.clearCookie('refresh_token', cookieOptions)
+  private clearAuthCookie(res: Response) {
+    res.clearCookie(
+      'access_token',
+      this.getCookieOptions(),
+    )
   }
 
   private toAuthUser(user: UserDocument) {

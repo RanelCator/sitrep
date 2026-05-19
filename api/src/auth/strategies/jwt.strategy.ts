@@ -4,28 +4,23 @@ import { PassportStrategy } from '@nestjs/passport'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import type { Request } from 'express'
 
+function extractTokenFromCookie(req: Request) {
+  return req?.cookies?.access_token ?? null
+}
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(config: ConfigService) {
+  constructor(private readonly config: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (req: Request) => {
-          return req?.cookies?.access_token ?? null
-        },
+        extractTokenFromCookie,
       ]),
-      secretOrKey: config.getOrThrow<string>('JWT_ACCESS_SECRET'),
       ignoreExpiration: false,
+      secretOrKey: config.getOrThrow<string>('JWT_ACCESS_SECRET'),
     })
   }
 
-  async validate(payload: any) {
-    return {
-      userId: payload.sub,
-      sqlServerUserId: payload.sqlServerUserId,
-      username: payload.username,
-      name: payload.name,
-      role: payload.role,
-      isActive: true,
-    }
+  validate(payload: any) {
+    return payload
   }
 }

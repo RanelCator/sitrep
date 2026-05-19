@@ -1,15 +1,24 @@
-import { NestFactory } from '@nestjs/core';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common'
+import { NestFactory } from '@nestjs/core'
+
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { apiReference } from '@scalar/nestjs-api-reference'
-import { AppModule } from '@/app.module';
-import cookieParser from 'cookie-parser';
+
+import cookieParser from 'cookie-parser'
+
+import { AppModule } from '@/app.module'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.use(cookieParser());
+  const app = await NestFactory.create(AppModule)
+
+  app.use(cookieParser())
+
   app.enableCors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') ?? [],
+    origin:
+      process.env.ALLOWED_ORIGINS?.split(',') ?? [
+        'http://localhost:5173',
+      ],
+
     credentials: true,
   })
 
@@ -20,30 +29,43 @@ async function bootstrap() {
     }),
   )
 
-  const config = new DocumentBuilder()
-  .setTitle('SITREP API')
-  .setDescription('Dynamic form and submission API')
-  .setVersion('1.0')
-  .build()
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('SITREP API')
+    .setDescription(
+      'Dynamic form and submission API',
+    )
+    .setVersion('1.0')
+    .build()
 
-  const document = SwaggerModule.createDocument(app, config)
-  
+  const swaggerDocument =
+    SwaggerModule.createDocument(
+      app,
+      swaggerConfig,
+    )
+
   app.use(
     '/docs',
     apiReference({
-      content: document,
+      content: swaggerDocument,
       theme: 'deepSpace',
       documentDownloadType: 'none',
     }),
   )
 
-  const logger = new Logger('Bootstrap');
+  const port =
+    Number(process.env.PORT) || 5000
 
-  const port = Number(process.env.PORT) || 5000;
-  await app.listen(port, '0.0.0.0');
+  await app.listen(port, '0.0.0.0')
 
-  logger.log(` PGAS-GIS API Server started`);
-  logger.log(` Running on: http://localhost:${port}`);
-  logger.log(` API Reference: http://localhost:${port}/docs`);
+  const logger = new Logger('Bootstrap')
+
+  logger.log('SITREP API Server started')
+  logger.log(
+    `Running on: http://localhost:${port}`,
+  )
+  logger.log(
+    `API Reference: http://localhost:${port}/docs`,
+  )
 }
-bootstrap();
+
+bootstrap()

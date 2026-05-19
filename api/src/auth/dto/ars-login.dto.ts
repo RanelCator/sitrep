@@ -1,5 +1,3 @@
-// src/features/auth/dto/ars-login.dto.ts
-
 import { Type } from 'class-transformer'
 import { IsInt, Min } from 'class-validator'
 

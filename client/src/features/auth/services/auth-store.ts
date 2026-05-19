@@ -1,4 +1,5 @@
 // src/features/auth/services/auth-store.ts
+
 import { getCurrentUserRequest } from "@/features/auth/services/auth.service"
 import type { AuthUser } from "@/features/auth/types/auth.types"
 
@@ -20,6 +21,10 @@ class AuthStore {
   }
 
   async initialize() {
+    if (this.isInitialized) {
+      return
+    }
+
     try {
       const result = await getCurrentUserRequest()
 
@@ -31,6 +36,11 @@ class AuthStore {
     } catch {
       this.clear()
     }
+  }
+
+  async reload() {
+    this.isInitialized = false
+    await this.initialize()
   }
 }
 

@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as publicScanRouteImport } from './routes/(public)/scan'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
 import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports/index'
 import { Route as AuthenticatedReportedIncidentsIndexRouteImport } from './routes/_authenticated/reported-incidents/index'
+import { Route as AuthenticatedPatientConsultationReferralFormIndexRouteImport } from './routes/_authenticated/patient-consultation-referral-form/index'
 import { Route as AuthenticatedOtherInformationIndexRouteImport } from './routes/_authenticated/other-information/index'
 import { Route as AuthenticatedOtherDelegationIndexRouteImport } from './routes/_authenticated/other-delegation/index'
 import { Route as AuthenticatedHighlightsIndexRouteImport } from './routes/_authenticated/highlights/index'
@@ -31,6 +33,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const publicScanRoute = publicScanRouteImport.update({
+  id: '/(public)/scan',
+  path: '/scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const authLoginRoute = authLoginRouteImport.update({
   id: '/(auth)/login',
   path: '/login',
@@ -46,6 +53,12 @@ const AuthenticatedReportedIncidentsIndexRoute =
   AuthenticatedReportedIncidentsIndexRouteImport.update({
     id: '/reported-incidents/',
     path: '/reported-incidents/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPatientConsultationReferralFormIndexRoute =
+  AuthenticatedPatientConsultationReferralFormIndexRouteImport.update({
+    id: '/patient-consultation-referral-form/',
+    path: '/patient-consultation-referral-form/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedOtherInformationIndexRoute =
@@ -94,18 +107,21 @@ const AuthenticatedReportsIdViewRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof authLoginRoute
+  '/scan': typeof publicScanRoute
   '/reports/$date': typeof AuthenticatedReportsDateRoute
   '/billeting-quarters/': typeof AuthenticatedBilletingQuartersIndexRoute
   '/current-situation/': typeof AuthenticatedCurrentSituationIndexRoute
   '/highlights/': typeof AuthenticatedHighlightsIndexRoute
   '/other-delegation/': typeof AuthenticatedOtherDelegationIndexRoute
   '/other-information/': typeof AuthenticatedOtherInformationIndexRoute
+  '/patient-consultation-referral-form/': typeof AuthenticatedPatientConsultationReferralFormIndexRoute
   '/reported-incidents/': typeof AuthenticatedReportedIncidentsIndexRoute
   '/reports/': typeof AuthenticatedReportsIndexRoute
   '/reports/$id/view': typeof AuthenticatedReportsIdViewRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof authLoginRoute
+  '/scan': typeof publicScanRoute
   '/': typeof AuthenticatedIndexRoute
   '/reports/$date': typeof AuthenticatedReportsDateRoute
   '/billeting-quarters': typeof AuthenticatedBilletingQuartersIndexRoute
@@ -113,6 +129,7 @@ export interface FileRoutesByTo {
   '/highlights': typeof AuthenticatedHighlightsIndexRoute
   '/other-delegation': typeof AuthenticatedOtherDelegationIndexRoute
   '/other-information': typeof AuthenticatedOtherInformationIndexRoute
+  '/patient-consultation-referral-form': typeof AuthenticatedPatientConsultationReferralFormIndexRoute
   '/reported-incidents': typeof AuthenticatedReportedIncidentsIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
   '/reports/$id/view': typeof AuthenticatedReportsIdViewRoute
@@ -121,6 +138,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/(auth)/login': typeof authLoginRoute
+  '/(public)/scan': typeof publicScanRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/reports/$date': typeof AuthenticatedReportsDateRoute
   '/_authenticated/billeting-quarters/': typeof AuthenticatedBilletingQuartersIndexRoute
@@ -128,6 +146,7 @@ export interface FileRoutesById {
   '/_authenticated/highlights/': typeof AuthenticatedHighlightsIndexRoute
   '/_authenticated/other-delegation/': typeof AuthenticatedOtherDelegationIndexRoute
   '/_authenticated/other-information/': typeof AuthenticatedOtherInformationIndexRoute
+  '/_authenticated/patient-consultation-referral-form/': typeof AuthenticatedPatientConsultationReferralFormIndexRoute
   '/_authenticated/reported-incidents/': typeof AuthenticatedReportedIncidentsIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/_authenticated/reports/$id/view': typeof AuthenticatedReportsIdViewRoute
@@ -137,18 +156,21 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/scan'
     | '/reports/$date'
     | '/billeting-quarters/'
     | '/current-situation/'
     | '/highlights/'
     | '/other-delegation/'
     | '/other-information/'
+    | '/patient-consultation-referral-form/'
     | '/reported-incidents/'
     | '/reports/'
     | '/reports/$id/view'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/scan'
     | '/'
     | '/reports/$date'
     | '/billeting-quarters'
@@ -156,6 +178,7 @@ export interface FileRouteTypes {
     | '/highlights'
     | '/other-delegation'
     | '/other-information'
+    | '/patient-consultation-referral-form'
     | '/reported-incidents'
     | '/reports'
     | '/reports/$id/view'
@@ -163,6 +186,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authenticated'
     | '/(auth)/login'
+    | '/(public)/scan'
     | '/_authenticated/'
     | '/_authenticated/reports/$date'
     | '/_authenticated/billeting-quarters/'
@@ -170,6 +194,7 @@ export interface FileRouteTypes {
     | '/_authenticated/highlights/'
     | '/_authenticated/other-delegation/'
     | '/_authenticated/other-information/'
+    | '/_authenticated/patient-consultation-referral-form/'
     | '/_authenticated/reported-incidents/'
     | '/_authenticated/reports/'
     | '/_authenticated/reports/$id/view'
@@ -178,6 +203,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   authLoginRoute: typeof authLoginRoute
+  publicScanRoute: typeof publicScanRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -195,6 +221,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/(public)/scan': {
+      id: '/(public)/scan'
+      path: '/scan'
+      fullPath: '/scan'
+      preLoaderRoute: typeof publicScanRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/(auth)/login': {
       id: '/(auth)/login'
@@ -215,6 +248,13 @@ declare module '@tanstack/react-router' {
       path: '/reported-incidents'
       fullPath: '/reported-incidents/'
       preLoaderRoute: typeof AuthenticatedReportedIncidentsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/patient-consultation-referral-form/': {
+      id: '/_authenticated/patient-consultation-referral-form/'
+      path: '/patient-consultation-referral-form'
+      fullPath: '/patient-consultation-referral-form/'
+      preLoaderRoute: typeof AuthenticatedPatientConsultationReferralFormIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/other-information/': {
@@ -277,6 +317,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHighlightsIndexRoute: typeof AuthenticatedHighlightsIndexRoute
   AuthenticatedOtherDelegationIndexRoute: typeof AuthenticatedOtherDelegationIndexRoute
   AuthenticatedOtherInformationIndexRoute: typeof AuthenticatedOtherInformationIndexRoute
+  AuthenticatedPatientConsultationReferralFormIndexRoute: typeof AuthenticatedPatientConsultationReferralFormIndexRoute
   AuthenticatedReportedIncidentsIndexRoute: typeof AuthenticatedReportedIncidentsIndexRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
   AuthenticatedReportsIdViewRoute: typeof AuthenticatedReportsIdViewRoute
@@ -294,6 +335,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedOtherDelegationIndexRoute,
   AuthenticatedOtherInformationIndexRoute:
     AuthenticatedOtherInformationIndexRoute,
+  AuthenticatedPatientConsultationReferralFormIndexRoute:
+    AuthenticatedPatientConsultationReferralFormIndexRoute,
   AuthenticatedReportedIncidentsIndexRoute:
     AuthenticatedReportedIncidentsIndexRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
@@ -306,6 +349,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   authLoginRoute: authLoginRoute,
+  publicScanRoute: publicScanRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

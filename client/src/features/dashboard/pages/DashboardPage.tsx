@@ -12,6 +12,7 @@ import {
   Info,
   MapPin,
   Megaphone,
+  SquareActivity,
   Trophy,
   Users,
 } from "lucide-react"
@@ -51,67 +52,48 @@ import { useDashboardSummaryQuery } from "@/features/dashboard/hooks/useDashboar
 const modules = [
   {
     title: "Highlights",
-
     description:
-      "Daily report summary and major updates",
-
+      "Daily report summaries and major updates",
     icon: Megaphone,
-
     href: "/highlights",
   },
-
   {
     title: "Billeting Quarters",
-
     description:
-      "Preparedness rating and delegation assignments",
-
+      "Preparedness ratings and delegation assignments",
     icon: BedDouble,
-
     href: "/billeting-quarters",
   },
 
   {
-    title: "Playing Venue",
-
+    title: "Playing Venues",
     description:
       "Infrastructure, peripherals, and sports equipment status",
-
     icon: MapPin,
-
-    href: "/playing-venue",
+    href: "/playing-venues",
   },
 
   {
-    title: "Current Situation",
-
+    title: "Current Situations",
     description:
       "Committee updates, concerns, and recommendations",
-
     icon: ClipboardList,
-
-    href: "/current-situation",
+    href: "/current-situations",
   },
 
   {
     title: "Reported Incidents",
-
     description:
       "Incident logs and current status monitoring",
-
     icon: AlertTriangle,
-
     href: "/reported-incidents",
   },
 
   {
     title: "Other Information",
-
     description:
       "Additional notes and operational reminders",
-
     icon: Info,
-
     href: "/other-information",
   },
 ]

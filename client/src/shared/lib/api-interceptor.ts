@@ -1,5 +1,9 @@
 // src/shared/lib/api-interceptor.ts
-import type { AxiosError, InternalAxiosRequestConfig } from "axios"
+
+import type {
+  AxiosError,
+  InternalAxiosRequestConfig,
+} from "axios"
 
 import { router } from "@/router"
 import { authStore } from "@/features/auth/services/auth-store"
@@ -26,8 +30,17 @@ function isAuthRoute(url = "") {
   )
 }
 
+function isPublicRoute() {
+  const publicRoutes = ["/scan"]
+
+  return publicRoutes.some((route) =>
+    window.location.pathname.startsWith(route),
+  )
+}
+
 export function setupAxiosInterceptors() {
   if (interceptorRegistered) return
+
   interceptorRegistered = true
 
   api.interceptors.response.use(
@@ -35,7 +48,8 @@ export function setupAxiosInterceptors() {
 
     async (error: AxiosError) => {
       const status = error.response?.status
-      const originalRequest = error.config as RetryRequestConfig | undefined
+      const originalRequest =
+        error.config as RetryRequestConfig | undefined
 
       if (!originalRequest) {
         return Promise.reject(error)
@@ -48,10 +62,12 @@ export function setupAxiosInterceptors() {
       if (originalRequest._retry) {
         authStore.clear()
 
-        await router.navigate({
-          to: "/login",
-          replace: true,
-        })
+        if (!isPublicRoute()) {
+          await router.navigate({
+            to: "/login",
+            replace: true,
+          })
+        }
 
         return Promise.reject(error)
       }
@@ -60,14 +76,17 @@ export function setupAxiosInterceptors() {
 
       if (isRefreshing) {
         return new Promise((resolve) => {
-          refreshQueue.push(() => resolve(api(originalRequest)))
+          refreshQueue.push(() =>
+            resolve(api(originalRequest)),
+          )
         })
       }
 
       isRefreshing = true
 
       try {
-        const refreshResponse = await publicApi.post("/auth/refresh")
+        const refreshResponse =
+          await publicApi.post("/auth/refresh")
 
         if (refreshResponse.data?.success) {
           processQueue()
@@ -79,10 +98,12 @@ export function setupAxiosInterceptors() {
         processQueue()
         authStore.clear()
 
-        await router.navigate({
-          to: "/login",
-          replace: true,
-        })
+        if (!isPublicRoute()) {
+          await router.navigate({
+            to: "/login",
+            replace: true,
+          })
+        }
 
         return Promise.reject(refreshError)
       } finally {

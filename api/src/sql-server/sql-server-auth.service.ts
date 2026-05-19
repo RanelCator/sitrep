@@ -220,7 +220,7 @@ private getConnectionConfig(
   }
 
   async findArsUserById(id: number): Promise<SqlServerArsUser | null> {
-  const pool = await this.getPool('CBMS')
+  const pool = await this.getPool('PMIS')
 
   const result = await pool
     .request()

@@ -28,6 +28,7 @@ export interface SqlServerArsUser {
   eid: string
   username: string
   name: string
+  region: number
 }
 
 @Injectable()
@@ -230,7 +231,8 @@ private getConnectionConfig(
         a.[UserId] AS id,
         a.[Eid] AS eid,
         a.[Username] AS username,
-        a.[FullName] AS name
+        a.[FullName] AS name, 
+        a.[RegionId] AS region
       FROM [pptf].[dbo].[TblUsers] a
       JOIN [pptf].[dbo].[TblUsersArs] b
         ON b.UserId = a.UserId
@@ -248,6 +250,7 @@ private getConnectionConfig(
     eid: String(user.eid ?? ''),
     username: user.username,
     name: user.name,
+    region: user.region ?? 0,
   }
 }
 

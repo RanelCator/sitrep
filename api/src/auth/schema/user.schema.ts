@@ -29,6 +29,9 @@ export class User {
 
   @Prop()
   lastLoginAt?: Date
+
+  @Prop()
+  regionID?: number
 }
 
 export const UserSchema = SchemaFactory.createForClass(User)

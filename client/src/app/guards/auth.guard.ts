@@ -10,7 +10,7 @@ export function requireAuth() {
 
     if (!authStore.isAuthenticated) {
       throw redirect({
-        to: "/login",
+        to: "/unauthorized",
       })
     }
   }

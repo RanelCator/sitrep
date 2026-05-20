@@ -69,7 +69,7 @@ const modules = [
     description:
       "Infrastructure, peripherals, and sports equipment status",
     icon: MapPin,
-    href: "/playing-venues",
+    href: "/playing-venue",
   },
 
   {
@@ -77,7 +77,7 @@ const modules = [
     description:
       "Committee updates, concerns, and recommendations",
     icon: ClipboardList,
-    href: "/current-situations",
+    href: "/current-situation",
   },
 
   {

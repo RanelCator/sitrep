@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UnauthorizedRouteImport } from './routes/unauthorized'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as publicScanRouteImport } from './routes/(public)/scan'
@@ -24,6 +25,11 @@ import { Route as AuthenticatedBilletingQuartersIndexRouteImport } from './route
 import { Route as AuthenticatedReportsDateRouteImport } from './routes/_authenticated/reports/$date'
 import { Route as AuthenticatedReportsIdViewRouteImport } from './routes/_authenticated/reports/$id/view'
 
+const UnauthorizedRoute = UnauthorizedRouteImport.update({
+  id: '/unauthorized',
+  path: '/unauthorized',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -106,6 +112,7 @@ const AuthenticatedReportsIdViewRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
+  '/unauthorized': typeof UnauthorizedRoute
   '/login': typeof authLoginRoute
   '/scan': typeof publicScanRoute
   '/reports/$date': typeof AuthenticatedReportsDateRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/reports/$id/view': typeof AuthenticatedReportsIdViewRoute
 }
 export interface FileRoutesByTo {
+  '/unauthorized': typeof UnauthorizedRoute
   '/login': typeof authLoginRoute
   '/scan': typeof publicScanRoute
   '/': typeof AuthenticatedIndexRoute
@@ -137,6 +145,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/unauthorized': typeof UnauthorizedRoute
   '/(auth)/login': typeof authLoginRoute
   '/(public)/scan': typeof publicScanRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/unauthorized'
     | '/login'
     | '/scan'
     | '/reports/$date'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/reports/$id/view'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/unauthorized'
     | '/login'
     | '/scan'
     | '/'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authenticated'
+    | '/unauthorized'
     | '/(auth)/login'
     | '/(public)/scan'
     | '/_authenticated/'
@@ -202,12 +214,20 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  UnauthorizedRoute: typeof UnauthorizedRoute
   authLoginRoute: typeof authLoginRoute
   publicScanRoute: typeof publicScanRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/unauthorized': {
+      id: '/unauthorized'
+      path: '/unauthorized'
+      fullPath: '/unauthorized'
+      preLoaderRoute: typeof UnauthorizedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -348,6 +368,7 @@ const AuthenticatedRouteRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  UnauthorizedRoute: UnauthorizedRoute,
   authLoginRoute: authLoginRoute,
   publicScanRoute: publicScanRoute,
 }

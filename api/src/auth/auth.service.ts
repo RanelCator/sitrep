@@ -74,6 +74,7 @@ export class AuthService {
       sqlServerUserId: String(sqlUser.id),
       username: sqlUser.username,
       name: sqlUser.name,
+      regionID: sqlUser.region,
     })
 
     const token = await this.generateAccessToken(user)
@@ -118,6 +119,7 @@ export class AuthService {
     sqlServerUserId: string
     username: string
     name: string
+    regionID?: number
   }) {
     let user = await this.userModel.findOne({
       sqlServerUserId: payload.sqlServerUserId,
@@ -130,11 +132,13 @@ export class AuthService {
         name: payload.name,
         role: 'encoder',
         isActive: true,
+        regionID: payload.regionID,
         lastLoginAt: new Date(),
       })
     } else {
       user.username = payload.username
       user.name = payload.name
+      user.regionID = payload.regionID
       user.lastLoginAt = new Date()
 
       await user.save()

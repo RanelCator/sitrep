@@ -170,6 +170,21 @@ export class AuthService {
     )
   }
 
+  // private getCookieOptions() {
+  //   const isProduction =
+  //     this.config.get<string>('NODE_ENV') === 'production'
+
+  //   return {
+  //     httpOnly: true,
+  //     secure: isProduction,
+  //     sameSite: isProduction ? ('none' as const) : ('lax' as const),
+  //     domain: isProduction
+  //       ? this.config.get<string>('COOKIE_DOMAIN') || undefined
+  //       : undefined,
+  //     path: '/',
+  //   }
+  // }
+
   private getCookieOptions() {
     const isProduction =
       this.config.get<string>('NODE_ENV') === 'production'
@@ -182,6 +197,9 @@ export class AuthService {
         ? this.config.get<string>('COOKIE_DOMAIN') || undefined
         : undefined,
       path: '/',
+
+      // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     }
   }
 

@@ -34,6 +34,7 @@ import {
   alertSuccess,
   showAlertWithDialogHidden,
 } from "@/shared/lib/alert"
+
 import { Button } from "@/shared/components/ui/button"
 
 import { cn } from "@/shared/lib/utils"
@@ -56,6 +57,7 @@ const modules = [
     icon: Megaphone,
     href: "/highlights",
   },
+
   {
     title: "Billeting Quarters",
     description:
@@ -124,6 +126,10 @@ export function DashboardPage() {
         dashboardData?.venueStatus
           ?.infrastructure ?? 0,
 
+      description:
+        misc?.infrastructure_description ??
+        "",
+
       icon: Building2,
 
       tone: "text-emerald-700",
@@ -136,6 +142,10 @@ export function DashboardPage() {
         dashboardData?.venueStatus
           ?.peripherals ?? 0,
 
+      description:
+        misc?.peripherals_description ??
+        "",
+
       icon: Megaphone,
 
       tone: "text-orange-600",
@@ -147,6 +157,10 @@ export function DashboardPage() {
       value:
         dashboardData?.venueStatus
           ?.sports_equipment ?? 0,
+
+      description:
+        misc?.sports_equipment_description ??
+        "",
 
       icon: Trophy,
 
@@ -272,24 +286,43 @@ export function DashboardPage() {
       }
     }
 
-    function toLocalDateKey(value: string | Date) {
-  const date = new Date(value)
+  function toLocalDateKey(
+    value: string | Date,
+  ) {
+    const date = new Date(value)
 
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  const day = String(date.getDate()).padStart(2, "0")
+    const year =
+      date.getFullYear()
 
-  return `${year}-${month}-${day}`
-}
+    const month = String(
+      date.getMonth() + 1,
+    ).padStart(2, "0")
 
-const todayHighlights =
-  dashboardData?.latestHighlights?.filter((item: any) => {
-    const today = toLocalDateKey(new Date())
+    const day = String(
+      date.getDate(),
+    ).padStart(2, "0")
 
-    const itemDate = toLocalDateKey(item.DateTimeEntered)
+    return `${year}-${month}-${day}`
+  }
 
-    return itemDate === today
-  }) ?? []
+  const todayHighlights =
+    dashboardData?.latestHighlights?.filter(
+      (item: any) => {
+        const today =
+          toLocalDateKey(
+            new Date(),
+          )
+
+        const itemDate =
+          toLocalDateKey(
+            item.DateTimeEntered,
+          )
+
+        return (
+          itemDate === today
+        )
+      },
+    ) ?? []
 
   return (
     <div className="min-h-screen bg-slate-50 p-6">
@@ -325,7 +358,8 @@ const todayHighlights =
 
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {summaryCards.map((item) => {
-            const Icon = item.icon
+            const Icon =
+              item.icon
 
             return (
               <Card
@@ -369,46 +403,60 @@ const todayHighlights =
 
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card className="rounded-2xl border-0 shadow-sm lg:col-span-2">
-  <CardHeader>
-    <CardTitle className="flex items-center gap-2 text-blue-900">
-      <FileText className="size-5" />
-      Highlights
-    </CardTitle>
-  </CardHeader>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-900">
+                <FileText className="size-5" />
+                Highlights
+              </CardTitle>
+            </CardHeader>
 
-  <CardContent className="space-y-4 text-sm leading-7 text-slate-700">
-    {todayHighlights.length ? (
-      todayHighlights.map(
-        (item: any) => (
-          <div
-            key={item._id}
-            className="rounded-xl border bg-slate-50 p-4"
-          >
-            <div
-              className="[&_*]:m-0"
-              dangerouslySetInnerHTML={{
-                __html:
-                  item.description ??
-                  "",
-              }}
-            />
-          </div>
-        ),
-      )
-    ) : (
-      <p>
-        No highlights available.
-      </p>
-    )}
-  </CardContent>
-</Card>
+            <CardContent className="space-y-4 text-sm leading-7 text-slate-700">
+              {todayHighlights.length ? (
+                todayHighlights.map(
+                  (item: any) => (
+                    <div
+                      key={item._id}
+                      className="rounded-xl border bg-slate-50 p-4"
+                    >
+                      <div
+                        className="[&_*]:m-0"
+                        dangerouslySetInnerHTML={{
+                          __html:
+                            item.description ??
+                            "",
+                        }}
+                      />
+                    </div>
+                  ),
+                )
+              ) : (
+                <p>
+                  No highlights
+                  available.
+                </p>
+              )}
+            </CardContent>
+          </Card>
 
           <Card className="rounded-2xl border-0 shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-emerald-800">
-                <MapPin className="size-5" />
-                Status of Playing
-                Venue
+              <CardTitle className="flex items-center justify-between gap-2 text-emerald-800">
+                <div className="flex items-center gap-2">
+                  <MapPin className="size-5" />
+                  Status of Playing
+                  Venue
+                </div>
+
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    setOpenPlayingVenueForm(
+                      true,
+                    )
+                  }
+                >
+                  Update
+                </Button>
               </CardTitle>
             </CardHeader>
 
@@ -459,9 +507,57 @@ const todayHighlights =
                           item.value
                         }
                       />
+
+                      {item.description && (
+                        <p className="text-xs leading-5 text-slate-500">
+                          {
+                            item.description
+                          }
+                        </p>
+                      )}
                     </div>
                   )
                 },
+              )}
+
+              <div className="grid grid-cols-2 gap-3 pt-3">
+                <div className="rounded-xl bg-slate-100 p-4 text-center">
+                  <p className="text-xs font-medium text-slate-500">
+                    Assigned
+                    Billeting
+                  </p>
+
+                  <p className="text-2xl font-bold">
+                    {misc?.billeting_quarters_assigned ??
+                      0}
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-slate-100 p-4 text-center">
+                  <p className="text-xs font-medium text-slate-500">
+                    Identified
+                    Billeting
+                  </p>
+
+                  <p className="text-2xl font-bold">
+                    {misc?.identified_billeting_quarters ??
+                      0}
+                  </p>
+                </div>
+              </div>
+
+              {misc?.identified_billeting_quarters_text && (
+                <div className="rounded-xl border bg-slate-50 p-4">
+                  <p className="text-sm font-semibold text-slate-700">
+                    Billeting Details
+                  </p>
+
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {
+                      misc.identified_billeting_quarters_text
+                    }
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -513,33 +609,22 @@ const todayHighlights =
                       0}
                   </p>
                 </div>
-                
               </div>
 
               <div className="space-y-3 pt-2">
-<Button
-  type="button"
-  className="w-full"
-  onClick={() => {
-    navigate({
-      to: "/reports",
-    })
-  }}
->
-  Generate Daily SitRep
-</Button>
-
-  {/* <Button
-    type="button"
-    variant="outline"
-    className="w-full"
-    onClick={() => {
-      // TODO: Generate Cumulative SitRep
-    }}
-  >
-    Generate Cumulative SitRep
-  </Button> */}
-</div>
+                <Button
+                  type="button"
+                  className="w-full"
+                  onClick={() => {
+                    navigate({
+                      to: "/reports",
+                    })
+                  }}
+                >
+                  Generate Daily
+                  SitRep
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -554,7 +639,7 @@ const todayHighlights =
                   onClick={() => {
                     if (
                       item.title ===
-                      "Playing Venue"
+                      "Playing Venues"
                     ) {
                       setOpenPlayingVenueForm(
                         true,
@@ -603,7 +688,7 @@ const todayHighlights =
           setOpenPlayingVenueForm
         }
         title="Playing Venue Status"
-        description="Update infrastructure, peripherals, and sports equipment readiness."
+        description="Update infrastructure, peripherals, sports equipment, and billeting readiness."
       >
         <PlayingVenueForm
           initialData={misc}

@@ -1,13 +1,18 @@
 // src/features/patient-consultation-referral-form/pages/PatientConsultationReferralFormPage.tsx
 
 import { useMemo, useState } from "react"
-import type { PaginationState, SortingState } from "@tanstack/react-table"
+import type {
+  PaginationState,
+  SortingState,
+} from "@tanstack/react-table"
+
 import { Plus } from "lucide-react"
 
 import { Button } from "@/shared/components/ui/button"
 import { FormDialog } from "@/shared/components/dialog/FormDialog"
 import { SearchBar } from "@/shared/components/table/SearchBar"
 import { ServerTable } from "@/shared/components/table/ServerTable"
+
 import {
   alertError,
   alertSuccess,
@@ -15,24 +20,31 @@ import {
   showAlertWithDialogHidden,
 } from "@/shared/lib/alert"
 
+import { cn } from "@/shared/lib/utils"
+
 import { PatientConsultationReferralForm } from "@/features/patient-consultation-referral-form/components/PatientConsultationReferralForm"
 import { usePatientConsultationReferralFormQuery } from "@/features/patient-consultation-referral-form/hooks/usePatientConsultationReferralFormQuery"
+
 import {
   useCreatePatientConsultationReferralFormMutation,
   useDeletePatientConsultationReferralFormMutation,
+  useTagEncodedPatientConsultationReferralFormMutation,
   useUpdatePatientConsultationReferralFormMutation,
 } from "@/features/patient-consultation-referral-form/hooks/usePatientConsultationReferralFormMutation"
+
 import { getPatientConsultationReferralFormColumns } from "@/features/patient-consultation-referral-form/tables/patient-consultation-referral-form.columns"
 
 import type {
   CreatePatientConsultationReferralFormPayload,
   PatientConsultationReferralFormtype,
 } from "@/features/patient-consultation-referral-form/types/patient-consultation-referral-form.types"
+
 import { ScanHeader } from "@/shared/components/layout/ScanHeader"
 
 export function PatientConsultationReferralFormPage() {
   const [search, setSearch] = useState("")
   const [openForm, setOpenForm] = useState(false)
+  const [isViewMode, setIsViewMode] = useState(false)
 
   const [selectedItem, setSelectedItem] =
     useState<PatientConsultationReferralFormtype | null>(null)
@@ -64,55 +76,95 @@ export function PatientConsultationReferralFormPage() {
   const deleteMutation =
     useDeletePatientConsultationReferralFormMutation()
 
+  const tagEncodedMutation =
+    useTagEncodedPatientConsultationReferralFormMutation()
+
   const items = query.data?.data ?? []
   const total = query.data?.meta?.total ?? 0
 
-const columns = useMemo(
-  () =>
-    getPatientConsultationReferralFormColumns({
-      onEdit: (item) => {
-        setDraftPayload(null)
-        setSelectedItem(item)
-        setOpenForm(true)
-      },
+  const columns = useMemo(
+    () =>
+      getPatientConsultationReferralFormColumns({
+        onView: (item) => {
+          setDraftPayload(null)
+          setSelectedItem(item)
+          setIsViewMode(true)
+          setOpenForm(true)
+        },
 
-      onPrint: (item) => {
-        window.open(
-          `/patient-consultation-referral-form/${item._id}/print`,
-          "_blank",
-        )
-      },
+        onEdit: (item) => {
+          setDraftPayload(null)
+          setSelectedItem(item)
+          setIsViewMode(false)
+          setOpenForm(true)
+        },
 
-      onDelete: async (item) => {
-        const confirmed = await confirmDanger({
-          title: "Delete Patient Form?",
-          text: "This action cannot be undone.",
-        })
+        onPrint: (item) => {
+          window.open(
+            `/patient-consultation-referral-form/${item._id}/print`,
+            "_blank",
+          )
+        },
 
-        if (!confirmed) return
+        onTagEncoded: async (item) => {
+          const nextEncodedStatus = !item.isEncoded
 
-        try {
-          await deleteMutation.mutateAsync(item._id)
+          try {
+            await tagEncodedMutation.mutateAsync({
+              id: item._id,
+              isEncoded: nextEncodedStatus,
+            })
 
-          await alertSuccess({
-            title: "Deleted Successfully",
-            timer: 1200,
-            showConfirmButton: false,
+            await query.refetch()
+
+            await alertSuccess({
+              title: nextEncodedStatus
+                ? "Record Tagged Successfully"
+                : "Returned to Pending",
+              timer: 1200,
+              showConfirmButton: false,
+            })
+          } catch {
+            await alertError({
+              title: "Update Failed",
+              text: "Unable to update encoded status.",
+            })
+          }
+        },
+
+        onDelete: async (item) => {
+          const confirmed = await confirmDanger({
+            title: "Delete Patient Form?",
+            text: "This action cannot be undone.",
           })
-        } catch {
-          await alertError({
-            title: "Delete Failed",
-            text: "Unable to delete patient form.",
-          })
-        }
-      },
-    }),
-  [deleteMutation],
-)
+
+          if (!confirmed) return
+
+          try {
+            await deleteMutation.mutateAsync(item._id)
+
+            await query.refetch()
+
+            await alertSuccess({
+              title: "Deleted Successfully",
+              timer: 1200,
+              showConfirmButton: false,
+            })
+          } catch {
+            await alertError({
+              title: "Delete Failed",
+              text: "Unable to delete patient form.",
+            })
+          }
+        },
+      }),
+    [deleteMutation, tagEncodedMutation, query],
+  )
 
   const handleAdd = () => {
     setSelectedItem(null)
     setDraftPayload(null)
+    setIsViewMode(false)
     setOpenForm(true)
   }
 
@@ -143,6 +195,8 @@ const columns = useMemo(
         })
       }
 
+      await query.refetch()
+
       setOpenForm(false)
       setSelectedItem(null)
       setDraftPayload(null)
@@ -165,20 +219,20 @@ const columns = useMemo(
     if (!open) {
       setSelectedItem(null)
       setDraftPayload(null)
+      setIsViewMode(false)
     }
   }
 
-  const formInitialData =
-    draftPayload
-      ? ({
-          ...selectedItem,
-          ...draftPayload,
-          _id: selectedItem?._id ?? "",
-          isActive: selectedItem?.isActive ?? true,
-          createdAt: selectedItem?.createdAt ?? "",
-          updatedAt: selectedItem?.updatedAt ?? "",
-        } as PatientConsultationReferralFormtype)
-      : selectedItem
+  const formInitialData = draftPayload
+    ? ({
+        ...selectedItem,
+        ...draftPayload,
+        _id: selectedItem?._id ?? "",
+        isActive: selectedItem?.isActive ?? true,
+        createdAt: selectedItem?.createdAt ?? "",
+        updatedAt: selectedItem?.updatedAt ?? "",
+      } as PatientConsultationReferralFormtype)
+    : selectedItem
 
   const isSubmitting =
     createMutation.isPending || updateMutation.isPending
@@ -215,19 +269,36 @@ const columns = useMemo(
         sorting={sorting}
         onSortingChange={setSorting}
         isLoading={query.isLoading}
+        rowClassName={(row) =>
+          cn(
+            row.original.isEncoded &&
+              "bg-emerald-50 hover:bg-emerald-100",
+          )
+        }
       />
 
       <FormDialog
         open={openForm}
         onOpenChange={handleOpenChange}
-        title={selectedItem ? "Edit Patient Form" : "Add Patient Form"}
-        description="Encode patient consultation and referral details."
+        title={
+          isViewMode
+            ? "View Patient Form"
+            : selectedItem
+              ? "Edit Patient Form"
+              : "Add Patient Form"
+        }
+        description={
+          isViewMode
+            ? "Viewing patient consultation and referral details."
+            : "Encode patient consultation and referral details."
+        }
       >
         <PatientConsultationReferralForm
           key={selectedItem?._id ?? "create"}
           initialData={formInitialData}
           isSubmitting={isSubmitting}
           onSubmit={handleSubmit}
+          readOnly={isViewMode}
         />
       </FormDialog>
     </div>

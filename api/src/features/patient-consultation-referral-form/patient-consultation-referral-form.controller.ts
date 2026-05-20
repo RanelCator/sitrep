@@ -9,12 +9,17 @@ import {
   Patch,
   Post,
   Query,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 
 import { PatientConsultationReferralFormService } from './patient-consultation-referral-form.service';
 import { CreatePatientConsultationReferralFormDto } from './dto/create-patient-consultation-referral-form.dto';
 import { UpdatePatientConsultationReferralFormDto } from './dto/update-patient-consultation-referral-form.dto';
 import { QueryPatientConsultationReferralFormDto } from './dto/query-patient-consultation-referral-form.dto';
+
+import type { AuthRequest } from '@/auth/types/auth-request.type'
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard'
 
 @Controller('patient-consultation-referral-forms')
 export class PatientConsultationReferralFormController {
@@ -28,8 +33,15 @@ export class PatientConsultationReferralFormController {
   }
 
   @Get()
-  findAll(@Query() query: QueryPatientConsultationReferralFormDto) {
-    return this.service.findAll(query);
+  @UseGuards(JwtAuthGuard)
+  findAll(
+    @Query() query: QueryPatientConsultationReferralFormDto,
+    @Req() req: AuthRequest,
+  ) {
+    return this.service.findAll(
+      query,
+      req.user,
+    )
   }
 
   @Get(':id')
@@ -51,7 +63,20 @@ export class PatientConsultationReferralFormController {
   }
 
   @Get('players/:id')
-    findPlayerById(@Param('id') id: string) {
+  findPlayerById(@Param('id') id: string) {
     return this.service.findPlayerById(id)
-    }
+  }
+
+    // src/features/patient-consultation-referral-form/patient-consultation-referral-form.controller.ts
+
+  @Patch(':id/encoded')
+  updateEncodedStatus(
+    @Param('id') id: string,
+    @Body('isEncoded') isEncoded: boolean,
+  ) {
+    return this.service.updateEncodedStatus(
+      id,
+      Boolean(isEncoded),
+    )
+  }
 }

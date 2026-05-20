@@ -11,6 +11,7 @@ export interface SqlServerUser {
   username: string
   name: string
   isActive: boolean
+  regionID?: number
 }
 
 export interface SqlServerPalaroPlayer {
@@ -154,6 +155,7 @@ private getConnectionConfig(
             ISNULL(tbl_members.middlename + ' ', ''),
             ISNULL(tbl_members.lastname, '')
           ) AS name,
+           0 as regionID,
           tbl_members.isactive AS isActive
         FROM tbl_account_info
         LEFT JOIN tbl_members
@@ -171,6 +173,7 @@ private getConnectionConfig(
       username: user.username,
       name: user.name,
       isActive: Boolean(user.isActive),
+      regionID: user.regionID,
     }
   }
 

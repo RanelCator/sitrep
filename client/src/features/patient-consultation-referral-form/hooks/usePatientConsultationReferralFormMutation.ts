@@ -7,6 +7,7 @@ import {
 } from "@/features/patient-consultation-referral-form/services/patient-consultation-referral-form.service"
 
 import { patientConsultationReferralFormKeys } from "@/features/patient-consultation-referral-form/hooks/usePatientConsultationReferralFormQuery"
+import { api } from "@/shared/lib/api"
 
 export function useCreatePatientConsultationReferralFormMutation() {
   const queryClient = useQueryClient()
@@ -43,6 +44,26 @@ export function useDeletePatientConsultationReferralFormMutation() {
       queryClient.invalidateQueries({
         queryKey: patientConsultationReferralFormKeys.all,
       })
+    },
+  })
+}
+
+export function useTagEncodedPatientConsultationReferralFormMutation() {
+  return useMutation({
+    mutationFn: async ({
+      id,
+      isEncoded,
+    }: {
+      id: string
+      isEncoded: boolean
+    }) => {
+      const response = await api.patch(
+        `/patient-consultation-referral-forms/${id}/encoded`,
+        {
+          isEncoded,
+        },
+      )
+      return response.data
     },
   })
 }

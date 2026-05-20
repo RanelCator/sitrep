@@ -45,6 +45,7 @@ export class AuthService {
       sqlServerUserId: String(sqlUser.id),
       username: sqlUser.username,
       name: sqlUser.name,
+      regionID: sqlUser.regionID,
     })
 
     const token = await this.generateAccessToken(user)
@@ -152,6 +153,7 @@ export class AuthService {
   }
 
   private async generateAccessToken(user: UserDocument) {
+    console.log("GENERATING TOKEN REGION:", user.regionID)
     return this.jwtService.signAsync(
       {
         sub: user.id,
@@ -159,6 +161,7 @@ export class AuthService {
         username: user.username,
         name: user.name,
         role: user.role,
+        regionID: user.regionID,
         permissions: [],
       },
       {
@@ -225,6 +228,7 @@ export class AuthService {
       username: user.username,
       name: user.name,
       role: user.role,
+      regionID: user.regionID,
       isActive: user.isActive,
     }
   }

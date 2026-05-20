@@ -5,6 +5,7 @@ import {
   type ColumnDef,
   type OnChangeFn,
   type PaginationState,
+  type Row,
   type SortingState,
 } from "@tanstack/react-table"
 
@@ -30,6 +31,7 @@ interface ServerTableProps<TData> {
   onSortingChange: OnChangeFn<SortingState>
 
   isLoading?: boolean
+  rowClassName?: (row: Row<TData>) => string
 }
 
 export function ServerTable<TData>({
@@ -41,11 +43,11 @@ export function ServerTable<TData>({
   sorting,
   onSortingChange,
   isLoading,
+  rowClassName,
 }: ServerTableProps<TData>) {
   const table = useReactTable({
     data,
     columns,
-
     pageCount: Math.ceil(total / pagination.pageSize),
 
     state: {
@@ -86,13 +88,19 @@ export function ServerTable<TData>({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-32 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-32 text-center"
+                >
                   Loading...
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  className={rowClassName?.(row)}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
@@ -105,7 +113,10 @@ export function ServerTable<TData>({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-32 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-32 text-center"
+                >
                   No records found.
                 </TableCell>
               </TableRow>
@@ -115,7 +126,9 @@ export function ServerTable<TData>({
       </div>
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">Total Records: {total}</p>
+        <p className="text-sm text-muted-foreground">
+          Total Records: {total}
+        </p>
 
         <div className="flex items-center gap-2">
           <Button

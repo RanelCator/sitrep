@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnauthorizedRouteImport } from './routes/unauthorized'
+import { Route as LogoutRouteImport } from './routes/logout'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as publicScanRouteImport } from './routes/(public)/scan'
@@ -24,10 +25,16 @@ import { Route as AuthenticatedCurrentSituationIndexRouteImport } from './routes
 import { Route as AuthenticatedBilletingQuartersIndexRouteImport } from './routes/_authenticated/billeting-quarters/index'
 import { Route as AuthenticatedReportsDateRouteImport } from './routes/_authenticated/reports/$date'
 import { Route as AuthenticatedReportsIdViewRouteImport } from './routes/_authenticated/reports/$id/view'
+import { Route as AuthenticatedPatientConsultationReferralFormIdPrintRouteImport } from './routes/_authenticated/patient-consultation-referral-form/$id/print'
 
 const UnauthorizedRoute = UnauthorizedRouteImport.update({
   id: '/unauthorized',
   path: '/unauthorized',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogoutRoute = LogoutRouteImport.update({
+  id: '/logout',
+  path: '/logout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -109,9 +116,16 @@ const AuthenticatedReportsIdViewRoute =
     path: '/reports/$id/view',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPatientConsultationReferralFormIdPrintRoute =
+  AuthenticatedPatientConsultationReferralFormIdPrintRouteImport.update({
+    id: '/patient-consultation-referral-form/$id/print',
+    path: '/patient-consultation-referral-form/$id/print',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
+  '/logout': typeof LogoutRoute
   '/unauthorized': typeof UnauthorizedRoute
   '/login': typeof authLoginRoute
   '/scan': typeof publicScanRoute
@@ -124,9 +138,11 @@ export interface FileRoutesByFullPath {
   '/patient-consultation-referral-form/': typeof AuthenticatedPatientConsultationReferralFormIndexRoute
   '/reported-incidents/': typeof AuthenticatedReportedIncidentsIndexRoute
   '/reports/': typeof AuthenticatedReportsIndexRoute
+  '/patient-consultation-referral-form/$id/print': typeof AuthenticatedPatientConsultationReferralFormIdPrintRoute
   '/reports/$id/view': typeof AuthenticatedReportsIdViewRoute
 }
 export interface FileRoutesByTo {
+  '/logout': typeof LogoutRoute
   '/unauthorized': typeof UnauthorizedRoute
   '/login': typeof authLoginRoute
   '/scan': typeof publicScanRoute
@@ -140,11 +156,13 @@ export interface FileRoutesByTo {
   '/patient-consultation-referral-form': typeof AuthenticatedPatientConsultationReferralFormIndexRoute
   '/reported-incidents': typeof AuthenticatedReportedIncidentsIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
+  '/patient-consultation-referral-form/$id/print': typeof AuthenticatedPatientConsultationReferralFormIdPrintRoute
   '/reports/$id/view': typeof AuthenticatedReportsIdViewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/logout': typeof LogoutRoute
   '/unauthorized': typeof UnauthorizedRoute
   '/(auth)/login': typeof authLoginRoute
   '/(public)/scan': typeof publicScanRoute
@@ -158,12 +176,14 @@ export interface FileRoutesById {
   '/_authenticated/patient-consultation-referral-form/': typeof AuthenticatedPatientConsultationReferralFormIndexRoute
   '/_authenticated/reported-incidents/': typeof AuthenticatedReportedIncidentsIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
+  '/_authenticated/patient-consultation-referral-form/$id/print': typeof AuthenticatedPatientConsultationReferralFormIdPrintRoute
   '/_authenticated/reports/$id/view': typeof AuthenticatedReportsIdViewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/logout'
     | '/unauthorized'
     | '/login'
     | '/scan'
@@ -176,9 +196,11 @@ export interface FileRouteTypes {
     | '/patient-consultation-referral-form/'
     | '/reported-incidents/'
     | '/reports/'
+    | '/patient-consultation-referral-form/$id/print'
     | '/reports/$id/view'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/logout'
     | '/unauthorized'
     | '/login'
     | '/scan'
@@ -192,10 +214,12 @@ export interface FileRouteTypes {
     | '/patient-consultation-referral-form'
     | '/reported-incidents'
     | '/reports'
+    | '/patient-consultation-referral-form/$id/print'
     | '/reports/$id/view'
   id:
     | '__root__'
     | '/_authenticated'
+    | '/logout'
     | '/unauthorized'
     | '/(auth)/login'
     | '/(public)/scan'
@@ -209,11 +233,13 @@ export interface FileRouteTypes {
     | '/_authenticated/patient-consultation-referral-form/'
     | '/_authenticated/reported-incidents/'
     | '/_authenticated/reports/'
+    | '/_authenticated/patient-consultation-referral-form/$id/print'
     | '/_authenticated/reports/$id/view'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  LogoutRoute: typeof LogoutRoute
   UnauthorizedRoute: typeof UnauthorizedRoute
   authLoginRoute: typeof authLoginRoute
   publicScanRoute: typeof publicScanRoute
@@ -226,6 +252,13 @@ declare module '@tanstack/react-router' {
       path: '/unauthorized'
       fullPath: '/unauthorized'
       preLoaderRoute: typeof UnauthorizedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logout': {
+      id: '/logout'
+      path: '/logout'
+      fullPath: '/logout'
+      preLoaderRoute: typeof LogoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -326,6 +359,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReportsIdViewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/patient-consultation-referral-form/$id/print': {
+      id: '/_authenticated/patient-consultation-referral-form/$id/print'
+      path: '/patient-consultation-referral-form/$id/print'
+      fullPath: '/patient-consultation-referral-form/$id/print'
+      preLoaderRoute: typeof AuthenticatedPatientConsultationReferralFormIdPrintRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -340,6 +380,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPatientConsultationReferralFormIndexRoute: typeof AuthenticatedPatientConsultationReferralFormIndexRoute
   AuthenticatedReportedIncidentsIndexRoute: typeof AuthenticatedReportedIncidentsIndexRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
+  AuthenticatedPatientConsultationReferralFormIdPrintRoute: typeof AuthenticatedPatientConsultationReferralFormIdPrintRoute
   AuthenticatedReportsIdViewRoute: typeof AuthenticatedReportsIdViewRoute
 }
 
@@ -360,6 +401,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReportedIncidentsIndexRoute:
     AuthenticatedReportedIncidentsIndexRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
+  AuthenticatedPatientConsultationReferralFormIdPrintRoute:
+    AuthenticatedPatientConsultationReferralFormIdPrintRoute,
   AuthenticatedReportsIdViewRoute: AuthenticatedReportsIdViewRoute,
 }
 
@@ -368,6 +411,7 @@ const AuthenticatedRouteRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  LogoutRoute: LogoutRoute,
   UnauthorizedRoute: UnauthorizedRoute,
   authLoginRoute: authLoginRoute,
   publicScanRoute: publicScanRoute,

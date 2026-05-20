@@ -12,15 +12,16 @@ import { CreatePatientConsultationReferralFormDto } from './dto/create-patient-c
 import { UpdatePatientConsultationReferralFormDto } from './dto/update-patient-consultation-referral-form.dto'
 import { QueryPatientConsultationReferralFormDto } from './dto/query-patient-consultation-referral-form.dto'
 import { SqlServerAuthService } from '@/sql-server/sql-server-auth.service'
+import { REGIONS } from '@/shared/constants/regions.constant'
 
 @Injectable()
 export class PatientConsultationReferralFormService {
   constructor(
-  @InjectModel(PatientConsultationReferralForm.name)
-  private readonly formModel: Model<PatientConsultationReferralFormDocument>,
+    @InjectModel(PatientConsultationReferralForm.name)
+    private readonly formModel: Model<PatientConsultationReferralFormDocument>,
 
-  private readonly sqlServerAuthService: SqlServerAuthService,
-) {}
+    private readonly sqlServerAuthService: SqlServerAuthService,
+  ) {}
 
   async create(dto: CreatePatientConsultationReferralFormDto) {
     const created = await this.formModel.create({
@@ -39,7 +40,12 @@ export class PatientConsultationReferralFormService {
     }
   }
 
-  async findAll(query: QueryPatientConsultationReferralFormDto) {
+  async findAll(
+    query: QueryPatientConsultationReferralFormDto,
+    user?: {
+      regionID?: number | null
+    },
+  ) {
     const page = query.page ?? 1
     const limit = query.pageSize ?? 10
     const skip = (page - 1) * limit
@@ -52,15 +58,76 @@ export class PatientConsultationReferralFormService {
       isActive: true,
     }
 
+    const regionID = user?.regionID
+
+    if (
+      regionID === undefined ||
+      regionID === null
+    ) {
+      filter._id = {
+        $exists: false,
+      }
+    } else if (regionID !== 0) {
+      const region = REGIONS.find(
+        (item) => item.id === regionID,
+      )
+      console.log('User region:', region)
+      if (!region) {
+        filter._id = {
+          $exists: false,
+        }
+      } else {
+        filter.region = {
+          $regex: `^${region.regionName.trim()}\\s*$`,
+          $options: 'i',
+        }
+      }
+    }
+
     if (search) {
       filter.$or = [
-        { patientName: { $regex: search, $options: 'i' } },
-        { delegationType: { $regex: search, $options: 'i' } },
-        { region: { $regex: search, $options: 'i' } },
-        { division: { $regex: search, $options: 'i' } },
-        { sportsEvent: { $regex: search, $options: 'i' } },
-        { natureOfIncident: { $regex: search, $options: 'i' } },
-        { impressionDiagnosis: { $regex: search, $options: 'i' } },
+        {
+          patientName: {
+            $regex: search,
+            $options: 'i',
+          },
+        },
+        {
+          delegationType: {
+            $regex: search,
+            $options: 'i',
+          },
+        },
+        {
+          region: {
+            $regex: search,
+            $options: 'i',
+          },
+        },
+        {
+          division: {
+            $regex: search,
+            $options: 'i',
+          },
+        },
+        {
+          sportsEvent: {
+            $regex: search,
+            $options: 'i',
+          },
+        },
+        {
+          natureOfIncident: {
+            $regex: search,
+            $options: 'i',
+          },
+        },
+        {
+          impressionDiagnosis: {
+            $regex: search,
+            $options: 'i',
+          },
+        },
       ]
     }
 
@@ -164,18 +231,46 @@ export class PatientConsultationReferralFormService {
     }
   }
 
-async findPlayerById(id: string) {
-  const player =
-    await this.sqlServerAuthService.findPalaroPlayerById(id)
+  async findPlayerById(id: string) {
+    const player =
+      await this.sqlServerAuthService.findPalaroPlayerById(id)
 
-  if (!player) {
-    throw new NotFoundException('Player not found.')
+    if (!player) {
+      throw new NotFoundException('Player not found.')
+    }
+
+    return {
+      success: true,
+      message: 'Player fetched successfully.',
+      data: player,
+    }
   }
 
-  return {
-    success: true,
-    message: 'Player fetched successfully.',
-    data: player,
+  async updateEncodedStatus(
+    id: string,
+    isEncoded: boolean,
+  ) {
+    const updated =
+      await this.formModel.findByIdAndUpdate(
+        id,
+        {
+          isEncoded,
+        },
+        {
+          new: true,
+        },
+      )
+
+    if (!updated) {
+      throw new NotFoundException(
+        'Patient consultation/referral form not found.',
+      )
+    }
+
+    return {
+      success: true,
+      message: 'Encoded status updated successfully.',
+      data: updated,
+    }
   }
-}
 }

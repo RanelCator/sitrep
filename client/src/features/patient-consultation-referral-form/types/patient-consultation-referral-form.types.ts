@@ -41,6 +41,8 @@ export interface PatientConsultationReferralFormtype {
   nodSignature?: string
   physicianSignature?: string
 
+  isEncoded?: boolean
+
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -86,6 +88,8 @@ export interface CreatePatientConsultationReferralFormPayload {
   remarks?: string
   nodSignature?: string
   physicianSignature?: string
+
+  isEncoded?: boolean
 }
 
 export type UpdatePatientConsultationReferralFormPayload =

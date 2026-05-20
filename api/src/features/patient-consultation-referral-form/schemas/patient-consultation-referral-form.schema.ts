@@ -103,6 +103,11 @@ export class PatientConsultationReferralForm {
 
   @Prop({ default: true })
   isActive!: boolean;
+
+  @Prop({
+    default: false,
+  })
+  isEncoded!: boolean
 }
 
 export const PatientConsultationReferralFormSchema =

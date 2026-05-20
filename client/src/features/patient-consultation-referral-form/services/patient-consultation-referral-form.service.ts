@@ -71,3 +71,23 @@ export async function fetchPatientPlayerById(
 
   return response.data
 }
+
+export async function tagEncodedPatientConsultationReferralForm(
+  id: string,
+) {
+  const response = await api.patch(
+    `/patient-consultation-referral-forms/${id}/encoded`,
+  )
+
+  return response.data
+}
+
+export async function fetchPatientConsultationReferralFormById(
+  id: string,
+) {
+  const response = await api.get(
+    `/patient-consultation-referral-forms/${id}`,
+  )
+
+  return response.data
+}

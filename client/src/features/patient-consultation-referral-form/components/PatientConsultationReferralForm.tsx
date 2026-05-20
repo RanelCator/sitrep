@@ -16,6 +16,7 @@ import type {
 interface PatientConsultationReferralFormProps {
   initialData?: PatientConsultationReferralFormtype | null
   isSubmitting?: boolean
+  readOnly?: boolean
   readOnlyFields?: string[]
   onSubmit: (payload: CreatePatientConsultationReferralFormPayload) => void
 }
@@ -23,6 +24,7 @@ interface PatientConsultationReferralFormProps {
 export function PatientConsultationReferralForm({
   initialData,
   isSubmitting,
+  readOnly = false,
   readOnlyFields = [],
   onSubmit,
 }: PatientConsultationReferralFormProps) {
@@ -57,14 +59,15 @@ export function PatientConsultationReferralForm({
       treatmentIntervention: initialData?.treatmentIntervention ?? "",
       impressionDiagnosis: initialData?.impressionDiagnosis ?? "",
       isTreated: initialData?.isTreated ?? false,
-      isUnderObservation:
-        initialData?.isUnderObservation ?? false,
+      isUnderObservation: initialData?.isUnderObservation ?? false,
       isReferred: initialData?.isReferred ?? false,
       remarks: initialData?.remarks ?? "",
       nodSignature: initialData?.nodSignature ?? "",
       physicianSignature: initialData?.physicianSignature ?? "",
     },
     onSubmit: async ({ value }) => {
+      if (readOnly) return
+
       if (!value.formDate) {
         alert("Please enter Date.")
         return
@@ -90,13 +93,19 @@ export function PatientConsultationReferralForm({
     },
   })
 
+  const isFieldReadOnly = (name: string) =>
+    readOnly || readOnlyFields.includes(name)
+
   return (
     <form
       className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault()
         event.stopPropagation()
-        form.handleSubmit()
+
+        if (!readOnly) {
+          form.handleSubmit()
+        }
       }}
     >
       <div className="rounded-lg border text-sm">
@@ -111,6 +120,7 @@ export function PatientConsultationReferralForm({
               form={form}
               name="formDate"
               type="date"
+              readOnly={isFieldReadOnly("formDate")}
             />
           </div>
         </div>
@@ -143,6 +153,7 @@ export function PatientConsultationReferralForm({
                           <input
                             type="radio"
                             name="delegationType"
+                            disabled={isFieldReadOnly("delegationType")}
                             checked={field.state.value === item}
                             onChange={() => field.handleChange(item)}
                           />
@@ -155,10 +166,9 @@ export function PatientConsultationReferralForm({
                           <input
                             type="radio"
                             name="delegationType"
+                            disabled={isFieldReadOnly("delegationType")}
                             checked={field.state.value === "Others"}
-                            onChange={() =>
-                              field.handleChange("Others")
-                            }
+                            onChange={() => field.handleChange("Others")}
                           />
                           Others:
                         </label>
@@ -166,7 +176,11 @@ export function PatientConsultationReferralForm({
                         <FormInput
                           form={form}
                           name="delegationTypeOther"
-                          disabled={field.state.value !== "Others"}
+                          disabled={
+                            field.state.value !== "Others" ||
+                            isFieldReadOnly("delegationTypeOther")
+                          }
+                          readOnly={isFieldReadOnly("delegationTypeOther")}
                         />
 
                         <span className="text-xs italic">
@@ -192,7 +206,11 @@ export function PatientConsultationReferralForm({
                       (N/A if from CO):
                     </span>
                   </div>
-                  <FormInput form={form} name="region" readOnly={readOnlyFields.includes("region")} />
+                  <FormInput
+                    form={form}
+                    name="region"
+                    readOnly={isFieldReadOnly("region")}
+                  />
                 </div>
 
                 <div>
@@ -202,7 +220,11 @@ export function PatientConsultationReferralForm({
                       (N/A if from CO and Region):
                     </span>
                   </div>
-                  <FormInput form={form} name="division" readOnly={readOnlyFields.includes("division")} />
+                  <FormInput
+                    form={form}
+                    name="division"
+                    readOnly={isFieldReadOnly("division")}
+                  />
                 </div>
 
                 <div>
@@ -213,6 +235,7 @@ export function PatientConsultationReferralForm({
                   <FormTextarea
                     form={form}
                     name="addressAndContactNumber"
+                    readOnly={isFieldReadOnly("addressAndContactNumber")}
                   />
                 </div>
               </div>
@@ -228,7 +251,11 @@ export function PatientConsultationReferralForm({
                 </span>{" "}
                 <RequiredMark />
               </div>
-              <FormInput form={form} name="patientName" readOnly={readOnlyFields.includes("patientName")} />
+              <FormInput
+                form={form}
+                name="patientName"
+                readOnly={isFieldReadOnly("patientName")}
+              />
             </FormCell>
 
             <FormCell>
@@ -240,12 +267,17 @@ export function PatientConsultationReferralForm({
                 form={form}
                 name="birthdate"
                 type="date"
+                readOnly={isFieldReadOnly("birthdate")}
               />
             </FormCell>
 
             <FormCell>
               <div>Age/Sex:</div>
-              <FormInput form={form} name="ageSex" />
+              <FormInput
+                form={form}
+                name="ageSex"
+                readOnly={isFieldReadOnly("ageSex")}
+              />
             </FormCell>
           </div>
 
@@ -256,7 +288,11 @@ export function PatientConsultationReferralForm({
                 (for athletes and coaches only):
               </span>
             </div>
-            <FormInput form={form} name="sportsEvent" readOnly={readOnlyFields.includes("sportsEvent")} />
+            <FormInput
+              form={form}
+              name="sportsEvent"
+              readOnly={isFieldReadOnly("sportsEvent")}
+            />
           </FormCell>
         </FormSection>
 
@@ -264,12 +300,20 @@ export function PatientConsultationReferralForm({
           <FormSection title="II. Details of the Incident">
             <FormCell>
               <div>Nature of Incident:</div>
-              <FormTextarea form={form} name="natureOfIncident" />
+              <FormTextarea
+                form={form}
+                name="natureOfIncident"
+                readOnly={isFieldReadOnly("natureOfIncident")}
+              />
             </FormCell>
 
             <FormCell>
               <div>Place of Incident:</div>
-              <FormTextarea form={form} name="placeOfIncident" />
+              <FormTextarea
+                form={form}
+                name="placeOfIncident"
+                readOnly={isFieldReadOnly("placeOfIncident")}
+              />
             </FormCell>
 
             <FormCell>
@@ -278,6 +322,7 @@ export function PatientConsultationReferralForm({
                 form={form}
                 name="incidentDateTime"
                 type="datetime-local"
+                readOnly={isFieldReadOnly("incidentDateTime")}
               />
             </FormCell>
           </FormSection>
@@ -285,12 +330,20 @@ export function PatientConsultationReferralForm({
           <FormSection title="III. General Assessment and Findings">
             <FormCell>
               <div>Chief Complaint/s:</div>
-              <FormTextarea form={form} name="chiefComplaints" />
+              <FormTextarea
+                form={form}
+                name="chiefComplaints"
+                readOnly={isFieldReadOnly("chiefComplaints")}
+              />
             </FormCell>
 
             <FormCell className="lg:min-h-[178px]">
               <div>PE Finding/s:</div>
-              <FormTextarea form={form} name="peFindings" />
+              <FormTextarea
+                form={form}
+                name="peFindings"
+                readOnly={isFieldReadOnly("peFindings")}
+              />
             </FormCell>
           </FormSection>
         </div>
@@ -317,18 +370,23 @@ export function PatientConsultationReferralForm({
               "temperature",
             ],
           ].map(([leftLabel, leftName, rightLabel, rightName]) => (
-            <div
-              key={leftName}
-              className="grid gap-0 lg:grid-cols-2"
-            >
+            <div key={leftName} className="grid gap-0 lg:grid-cols-2">
               <FormCell>
                 <div>{leftLabel}:</div>
-                <FormInput form={form} name={leftName} />
+                <FormInput
+                  form={form}
+                  name={leftName}
+                  readOnly={isFieldReadOnly(leftName)}
+                />
               </FormCell>
 
               <FormCell>
                 <div>{rightLabel}:</div>
-                <FormInput form={form} name={rightName} />
+                <FormInput
+                  form={form}
+                  name={rightName}
+                  readOnly={isFieldReadOnly(rightName)}
+                />
               </FormCell>
             </div>
           ))}
@@ -339,6 +397,7 @@ export function PatientConsultationReferralForm({
             <FormTextarea
               form={form}
               name="treatmentIntervention"
+              readOnly={isFieldReadOnly("treatmentIntervention")}
             />
           </FormCell>
         </FormSection>
@@ -348,6 +407,7 @@ export function PatientConsultationReferralForm({
             <FormTextarea
               form={form}
               name="impressionDiagnosis"
+              readOnly={isFieldReadOnly("impressionDiagnosis")}
             />
           </FormCell>
         </FormSection>
@@ -360,25 +420,32 @@ export function PatientConsultationReferralForm({
                   form={form}
                   name="isTreated"
                   label="Treated"
+                  readOnly={isFieldReadOnly("isTreated")}
                 />
 
                 <FormCheckbox
                   form={form}
                   name="isUnderObservation"
                   label="Under Observation"
+                  readOnly={isFieldReadOnly("isUnderObservation")}
                 />
 
                 <FormCheckbox
                   form={form}
                   name="isReferred"
                   label="Referred"
+                  readOnly={isFieldReadOnly("isReferred")}
                 />
               </div>
             </FormCell>
 
             <FormCell>
               <div>Remarks:</div>
-              <FormTextarea form={form} name="remarks" />
+              <FormTextarea
+                form={form}
+                name="remarks"
+                readOnly={isFieldReadOnly("remarks")}
+              />
             </FormCell>
           </div>
         </FormSection>
@@ -390,6 +457,7 @@ export function PatientConsultationReferralForm({
               form={form}
               name="nodSignature"
               placeholder="Enter full name"
+              readOnly={isFieldReadOnly("nodSignature")}
             />
           </FormCell>
 
@@ -399,22 +467,25 @@ export function PatientConsultationReferralForm({
               form={form}
               name="physicianSignature"
               placeholder="Enter full name"
+              readOnly={isFieldReadOnly("physicianSignature")}
             />
           </FormCell>
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="ml-auto block rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-      >
-        {isSubmitting
-          ? "Saving..."
-          : initialData
-            ? "Update Form"
-            : "Save Form"}
-      </button>
+      {!readOnly && (
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="ml-auto block rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+        >
+          {isSubmitting
+            ? "Saving..."
+            : initialData
+              ? "Update Form"
+              : "Save Form"}
+        </button>
+      )}
     </form>
   )
 }
@@ -487,6 +558,11 @@ function FormInput({
             placeholder={placeholder}
             disabled={disabled}
             readOnly={readOnly}
+            className={
+              readOnly
+                ? "bg-muted text-black opacity-100"
+                : ""
+            }
             onChange={(event) =>
               field.handleChange(event.target.value)
             }
@@ -501,19 +577,42 @@ interface FormTextareaProps {
   form: any
   name: string
   label?: string
+  readOnly?: boolean
 }
 
-function FormTextarea({ form, name, label }: FormTextareaProps) {
+function FormTextarea({
+  form,
+  name,
+  label,
+  readOnly,
+}: FormTextareaProps) {
   return (
     <form.Field name={name}>
       {(field: any) => (
         <div className="space-y-2">
-          {label ? <Label>{label}</Label> : null}
+          {label ? (
+            <Label>{label}</Label>
+          ) : null}
 
           <Textarea
-            value={field.state.value ?? ""}
-            onChange={(event) =>
-              field.handleChange(event.target.value)
+            value={
+              field.state.value ??
+              ""
+            }
+            readOnly={
+              readOnly
+            }
+            className={
+              readOnly
+                ? "border-slate-300 bg-slate-50 text-black opacity-100"
+                : ""
+            }
+            onChange={(
+              event,
+            ) =>
+              field.handleChange(
+                event.target.value,
+              )
             }
           />
         </div>
@@ -526,15 +625,22 @@ interface FormCheckboxProps {
   form: any
   name: string
   label: string
+  readOnly?: boolean
 }
 
-function FormCheckbox({ form, name, label }: FormCheckboxProps) {
+function FormCheckbox({
+  form,
+  name,
+  label,
+  readOnly,
+}: FormCheckboxProps) {
   return (
     <form.Field name={name}>
       {(field: any) => (
         <label className="flex items-center gap-2 text-sm">
           <Checkbox
             checked={field.state.value}
+            disabled={readOnly}
             onCheckedChange={(checked: CheckedState) =>
               field.handleChange(Boolean(checked))
             }

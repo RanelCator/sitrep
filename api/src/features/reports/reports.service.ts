@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common'
 
 import { InjectModel } from '@nestjs/mongoose'
-
 import { Model } from 'mongoose'
 
 import {
@@ -50,6 +49,8 @@ import {
   OtherDelegationDocument,
 } from '@/features/other-delegation/schemas/other-delegation.schema'
 
+type ReportCutoff = '8am' | '5pm'
+
 @Injectable()
 export class ReportsService {
   constructor(
@@ -78,13 +79,10 @@ export class ReportsService {
     private readonly otherDelegationModel: Model<OtherDelegationDocument>,
   ) {}
 
-  private getDayRange(
-    dateString: string,
-  ) {
-    const [year, month, day] =
-      dateString
-        .split('-')
-        .map(Number)
+  private getDayRange(dateString: string) {
+    const [year, month, day] = dateString
+      .split('-')
+      .map(Number)
 
     const start = new Date(
       year,
@@ -113,46 +111,80 @@ export class ReportsService {
     }
   }
 
-  private getArrivedCount(
-    item: any,
+  private getReportCutoffRange(
+    dateString: string,
+    cutoff: ReportCutoff,
   ) {
+    const [year, month, day] = dateString
+      .split('-')
+      .map(Number)
+
+    if (cutoff === '8am') {
+      const start = new Date(
+        year,
+        month - 1,
+        day - 1,
+        16,
+        0,
+        0,
+        0,
+      )
+
+      const end = new Date(
+        year,
+        month - 1,
+        day,
+        7,
+        0,
+        0,
+        0,
+      )
+
+      return { start, end }
+    }
+
+    const start = new Date(
+      year,
+      month - 1,
+      day,
+      7,
+      0,
+      0,
+      0,
+    )
+
+    const end = new Date(
+      year,
+      month - 1,
+      day,
+      16,
+      0,
+      0,
+      0,
+    )
+
+    return { start, end }
+  }
+
+  private getArrivedCount(item: any) {
     return (
-      (item.arrived?.athletes ??
-        0) +
-      (item.arrived?.coaches ??
-        0) +
-      (item.arrived
-        ?.advance_party ?? 0) +
-      (item.arrived?.trainers ??
-        0)
+      (item.arrived?.athletes ?? 0) +
+      (item.arrived?.coaches ?? 0) +
+      (item.arrived?.advance_party ?? 0) +
+      (item.arrived?.trainers ?? 0)
     )
   }
 
-  async findAll(
-    query: FetchGeneratedReportsDto,
-  ) {
+  async findAll(query: FetchGeneratedReportsDto) {
     const page = query.page ?? 1
+    const limit = query.limit ?? 10
+    const skip = (page - 1) * limit
 
-    const limit =
-      query.limit ?? 10
+    const search = query.search?.trim()
+    const sortBy = query.sortBy ?? 'createdAt'
+    const sortOrder = query.sortOrder ?? 'desc'
 
-    const skip =
-      (page - 1) * limit
-
-    const search =
-      query.search?.trim()
-
-    const sortBy =
-      query.sortBy ??
-      'createdAt'
-
-    const sortOrder =
-      query.sortOrder ?? 'desc'
-
-    const filter: Record<
-      string,
-      any
-    > = {}
+    const filter: Record<string, any> = {}
 
     if (search) {
       filter.$or = [
@@ -162,7 +194,6 @@ export class ReportsService {
             $options: 'i',
           },
         },
-
         {
           'data.report.title': {
             $regex: search,
@@ -172,62 +203,48 @@ export class ReportsService {
       ]
     }
 
-    const sort: Record<
-      string,
-      1 | -1
-    > = {
-      [sortBy]:
-        sortOrder === 'asc'
-          ? 1
-          : -1,
+    const sort: Record<string, 1 | -1> = {
+      [sortBy]: sortOrder === 'asc' ? 1 : -1,
     }
 
-    const [items, total] =
-      await Promise.all([
-        this.generatedReportModel
-          .find(filter)
-          .sort(sort)
-          .skip(skip)
-          .limit(limit)
-          .lean(),
+    const [items, total] = await Promise.all([
+      this.generatedReportModel
+        .find(filter)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
 
-        this.generatedReportModel.countDocuments(
-          filter,
-        ),
-      ])
+      this.generatedReportModel.countDocuments(filter),
+    ])
 
     return {
       success: true,
-
-      message:
-        'Generated reports fetched successfully',
-
+      message: 'Generated reports fetched successfully',
       data: items,
-
       meta: {
         page,
         limit,
         total,
-
-        totalPages:
-          Math.ceil(
-            total / limit,
-          ),
+        totalPages: Math.ceil(total / limit),
       },
     }
   }
 
   async generateDailyReport(
     reportDate: string,
+    reportCutoff: ReportCutoff = '5pm',
   ) {
+    const { start, end, entryDate } =
+      this.getDayRange(reportDate)
+
     const {
-      start,
-      end,
-      entryDate,
-    } =
-      this.getDayRange(
-        reportDate,
-      )
+      start: cutoffStart,
+      end: cutoffEnd,
+    } = this.getReportCutoffRange(
+      reportDate,
+      reportCutoff,
+    )
 
     const [
       misc,
@@ -238,9 +255,7 @@ export class ReportsService {
       otherInformation,
       otherDelegations,
     ] = await Promise.all([
-      this.miscModel
-        .findOne()
-        .lean(),
+      this.miscModel.findOne().lean(),
 
       this.billetingQuarterModel
         .find()
@@ -268,8 +283,8 @@ export class ReportsService {
       this.currentSituationModel
         .find({
           DateTimeEntered: {
-            $gte: start,
-            $lte: end,
+            $gte: cutoffStart,
+            $lte: cutoffEnd,
           },
         })
         .sort({
@@ -284,9 +299,9 @@ export class ReportsService {
 
       this.reportedIncidentModel
         .find({
-          Date: {
-            $gte: start,
-            $lte: end,
+          createdAt: {
+            $gte: cutoffStart,
+            $lte: cutoffEnd,
           },
         })
         .sort({
@@ -300,7 +315,12 @@ export class ReportsService {
         .lean(),
 
       this.otherInformationModel
-        .find()
+        .find({
+          createdAt: {
+            $gte: cutoffStart,
+            $lte: cutoffEnd,
+          },
+        })
         .sort({
           createdAt: -1,
         })
@@ -324,9 +344,7 @@ export class ReportsService {
       billetingQuarters.reduce(
         (sum, item) =>
           sum +
-          (item.expected_delegates ??
-            0),
-
+          (item.expected_delegates ?? 0),
         0,
       )
 
@@ -334,16 +352,12 @@ export class ReportsService {
       billetingQuarters.reduce(
         (sum, item) =>
           sum +
-          this.getArrivedCount(
-            item,
-          ),
-
+          this.getArrivedCount(item),
         0,
       )
 
     const remainingDelegates =
-      expectedDelegates -
-      totalArrived
+      expectedDelegates - totalArrived
 
     const overallArrivalRate =
       expectedDelegates > 0
@@ -360,9 +374,7 @@ export class ReportsService {
       otherDelegations.reduce(
         (sum, item) =>
           sum +
-          (item.expected_delegates ??
-            0),
-
+          (item.expected_delegates ?? 0),
         0,
       )
 
@@ -371,7 +383,6 @@ export class ReportsService {
         (sum, item) =>
           sum +
           (item.arrived ?? 0),
-
         0,
       )
 
@@ -395,31 +406,24 @@ export class ReportsService {
         : 0
 
     const preparednessAverage =
-      billetingQuarters.length >
-      0
+      billetingQuarters.length > 0
         ? Number(
             (
               billetingQuarters.reduce(
-                (
-                  sum,
-                  item,
-                ) =>
+                (sum, item) =>
                   sum +
                   (item.Preparedness_Rating ??
                     0),
-
                 0,
-              ) /
-              billetingQuarters.length
+              ) / billetingQuarters.length
             ).toFixed(2),
           )
         : 0
 
-    let highestArrivalRate =
-      {
-        region: 'N/A',
-        rate: 0,
-      }
+    let highestArrivalRate = {
+      region: 'N/A',
+      rate: 0,
+    }
 
     const delegationArrivalProgress =
       [...billetingQuarters]
@@ -432,20 +436,16 @@ export class ReportsService {
         )
         .map((item) => {
           const expected =
-            item.expected_delegates ??
-            0
+            item.expected_delegates ?? 0
 
           const arrived =
-            this.getArrivedCount(
-              item,
-            )
+            this.getArrivedCount(item)
 
           const arrivalRate =
             expected > 0
               ? Number(
                   (
-                    (arrived /
-                      expected) *
+                    (arrived / expected) *
                     100
                   ).toFixed(2),
                 )
@@ -455,14 +455,12 @@ export class ReportsService {
             arrivalRate >
             highestArrivalRate.rate
           ) {
-            highestArrivalRate =
-              {
-                region:
-                  item.Delegation ??
-                  'Unknown',
-
-                rate: arrivalRate,
-              }
+            highestArrivalRate = {
+              region:
+                item.Delegation ??
+                'Unknown',
+              rate: arrivalRate,
+            }
           }
 
           return {
@@ -485,8 +483,7 @@ export class ReportsService {
               item.Preparedness_Rating,
 
             arrived:
-              item.arrived ??
-              null,
+              item.arrived ?? null,
           }
         })
 
@@ -494,25 +491,19 @@ export class ReportsService {
       billetingQuarters.reduce(
         (acc, item) => {
           acc.athletes +=
-            item.arrived
-              ?.athletes ?? 0
+            item.arrived?.athletes ?? 0
 
           acc.coaches +=
-            item.arrived
-              ?.coaches ?? 0
+            item.arrived?.coaches ?? 0
 
           acc.advance_party +=
-            item.arrived
-              ?.advance_party ??
-            0
+            item.arrived?.advance_party ?? 0
 
           acc.trainers +=
-            item.arrived
-              ?.trainers ?? 0
+            item.arrived?.trainers ?? 0
 
           return acc
         },
-
         {
           athletes: 0,
           coaches: 0,
@@ -526,29 +517,43 @@ export class ReportsService {
       billetingQuarters.filter(
         (item) =>
           item.Delegation &&
-          item.Delegation.trim() !==
-            '',
+          item.Delegation.trim() !== '',
       ).length
 
     const data = {
       report: {
-        title:
-          'Daily Situation Report',
-
-        reportDate: entryDate,
-
+        title: 'Daily Situation Report',
+        reportDate: new Date(
+  entryDate,
+).toLocaleDateString(
+  'en-US',
+  {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  },
+) +
+` ${
+  reportCutoff === '8am'
+    ? '8AM'
+    : '5PM'
+}`,
         entryDate,
-
-        generatedAt:
-          new Date(),
+        reportCutoff,
+        cutoffLabel:
+          reportCutoff === '8am'
+            ? '8AM'
+            : '5PM',
+        cutoffStart,
+        cutoffEnd,
+        generatedAt: new Date(),
       },
 
       highlights,
 
       playingVenueStatus: {
         infrastructure:
-          misc?.infrastructure ??
-          0,
+          misc?.infrastructure ?? 0,
 
         infrastructure_description:
           misc?.infrastructure_description ??
@@ -562,63 +567,55 @@ export class ReportsService {
           '',
 
         sports_equipment:
-          misc?.sports_equipment ??
-          0,
+          misc?.sports_equipment ?? 0,
 
         sports_equipment_description:
           misc?.sports_equipment_description ??
           '',
       },
 
-      billetingQuartersStatus:
-        {
-          overallAveragePreparednessRating:
-            preparednessAverage,
+      billetingQuartersStatus: {
+        overallAveragePreparednessRating:
+          preparednessAverage,
 
-          totalIdentifiedBilletingQuarters:
-            misc?.identified_billeting_quarters ??
-            0,
+        totalIdentifiedBilletingQuarters:
+          misc?.identified_billeting_quarters ??
+          0,
 
-          billetingQuartersAssigned,
+        billetingQuartersAssigned,
 
-          identifiedBilletingQuartersText:
-            misc?.identified_billeting_quarters_text ??
-            '',
+        identifiedBilletingQuartersText:
+          misc?.identified_billeting_quarters_text ??
+          '',
 
-          list: [
-            ...billetingQuarters,
-          ]
-            .sort((a, b) =>
-              a._id
-                .toString()
-                .localeCompare(
-                  b._id.toString(),
-                ),
-            )
-            .map((item) => ({
-              billeting_quarter:
-                item.Billeting_Quarters,
+        list: [...billetingQuarters]
+          .sort((a, b) =>
+            a._id
+              .toString()
+              .localeCompare(
+                b._id.toString(),
+              ),
+          )
+          .map((item) => ({
+            billeting_quarter:
+              item.Billeting_Quarters,
 
-              delegation:
-                item.Delegation,
+            delegation:
+              item.Delegation,
 
-              preparedness_rating:
-                item.Preparedness_Rating,
+            preparedness_rating:
+              item.Preparedness_Rating,
 
-              expected_delegates:
-                item.expected_delegates ??
-                0,
+            expected_delegates:
+              item.expected_delegates ?? 0,
 
-              arrived:
-                item.arrived ??
-                null,
+            arrived:
+              item.arrived ?? null,
 
-              arrived_total:
-                this.getArrivedCount(
-                  item,
-                ),
-            })),
-        },
+            arrived_total:
+              this.getArrivedCount(item),
+          })),
+      },
 
       delegationArrival: {
         totalExpectedDelegates:
@@ -644,9 +641,7 @@ export class ReportsService {
         grandOverallArrivalRate,
 
         composition: {
-          total:
-            totalArrived,
-
+          total: totalArrived,
           ...arrivedComposition,
         },
       },
@@ -660,19 +655,15 @@ export class ReportsService {
     }
 
     const saved =
-      await this.generatedReportModel.create(
-        {
-          entryDate,
-          data,
-        },
-      )
+      await this.generatedReportModel.create({
+        entryDate,
+        data,
+      })
 
     return {
       success: true,
-
       message:
         'Daily report generated successfully',
-
       data: saved,
     }
   }
@@ -681,9 +672,7 @@ export class ReportsService {
     reportDate: string,
   ) {
     const { entryDate } =
-      this.getDayRange(
-        reportDate,
-      )
+      this.getDayRange(reportDate)
 
     const report =
       await this.generatedReportModel
@@ -703,10 +692,8 @@ export class ReportsService {
 
     return {
       success: true,
-
       message:
         'Generated daily report fetched successfully',
-
       data: report,
     }
   }
@@ -725,10 +712,8 @@ export class ReportsService {
 
     return {
       success: true,
-
       message:
         'Generated report fetched successfully',
-
       data: report,
     }
   }

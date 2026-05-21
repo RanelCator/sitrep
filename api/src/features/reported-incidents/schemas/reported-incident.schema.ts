@@ -36,6 +36,9 @@ export class ReportedIncident {
     required: true,
   })
   AddedBy!: Types.ObjectId
+
+  @Prop({ default: 0 })
+  GroupID!: number
 }
 
 export const ReportedIncidentSchema =

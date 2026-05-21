@@ -32,6 +32,12 @@ export class User {
 
   @Prop()
   regionID?: number
+
+  @Prop({ required: true, default: 0 })
+  groupID!: number
+
+  @Prop({ type: [Number], default: [] })
+  arsIds!: number[]
 }
 
 export const UserSchema = SchemaFactory.createForClass(User)

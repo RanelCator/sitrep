@@ -27,89 +27,27 @@ function percent(value?: number) {
   return `${value ?? 0}%`
 }
 
-function getPreparednessBadge(
-  rating: number,
-) {
+function getPreparednessBadge(rating: number) {
   if (rating >= 95) {
     return {
-      label: "Fully Ready",
-
-      badge:
-        "bg-emerald-700 text-white border-emerald-700",
-
-      progress:
-        "bg-emerald-600",
-
-      ring:
-        "ring-emerald-200",
-
-      card:
-        "bg-emerald-50 border-emerald-200",
-
-      text:
-        "text-emerald-800",
+      progress: "bg-emerald-600",
     }
   }
 
   if (rating >= 85) {
     return {
-      label: "Almost Ready",
-
-      badge:
-        "bg-lime-500 text-black border-lime-500",
-
-      progress:
-        "bg-lime-500",
-
-      ring:
-        "ring-lime-200",
-
-      card:
-        "bg-lime-50 border-lime-200",
-
-      text:
-        "text-lime-800",
+      progress: "bg-lime-500",
     }
   }
 
   if (rating >= 70) {
     return {
-      label: "Needs Improvement",
-
-      badge:
-        "bg-amber-500 text-black border-amber-500",
-
-      progress:
-        "bg-amber-500",
-
-      ring:
-        "ring-amber-200",
-
-      card:
-        "bg-amber-50 border-amber-200",
-
-      text:
-        "text-amber-800",
+      progress: "bg-amber-500",
     }
   }
 
   return {
-    label: "Critical",
-
-    badge:
-      "bg-red-600 text-white border-red-600",
-
-    progress:
-      "bg-red-500",
-
-    ring:
-      "ring-red-200",
-
-    card:
-      "bg-red-50 border-red-200",
-
-    text:
-      "text-red-800",
+    progress: "bg-red-500",
   }
 }
 
@@ -136,6 +74,100 @@ export function DailySitRepPrintPage() {
 
   return (
     <div className="bg-slate-100 p-6 print:bg-white print:p-0">
+<style>
+  {`
+    @page {
+      size: A4 landscape;
+      margin: 8mm;
+    }
+
+    @media print {
+      html,
+      body {
+        background: white;
+      }
+
+      .delegation-arrival-section {
+        break-before: page;
+        page-break-before: always;
+        break-inside: auto;
+        page-break-inside: auto;
+      }
+
+      .delegation-header,
+      .delegation-summary {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .report-page {
+        width: auto;
+        min-height: auto;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      .report-page,
+.report-page table,
+.report-page th,
+.report-page td {
+  font-family: Arial, Tahoma, sans-serif;
+}
+
+.report-html p {
+  margin: 0 0 6px 0;
+}
+
+      .page-break-before {
+        break-before: page;
+        page-break-before: always;
+      }
+
+      .section-title {
+        break-after: avoid;
+        page-break-after: avoid;
+      }
+
+      .keep-together {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      thead {
+        display: table-header-group;
+      }
+
+      tfoot {
+        display: table-footer-group;
+      }
+
+      tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+    }
+
+    @media screen {
+      .report-page {
+        width: 297mm;
+        min-height: 210mm;
+        padding: 12mm;
+        margin: 0 auto 24px auto;
+        box-sizing: border-box;
+      }
+    }
+
+    .report-html p {
+      margin: 0 0 6px 0;
+    }
+
+    .report-html ul,
+    .report-html ol {
+      margin-left: 18px;
+    }
+  `}
+</style>
+
       <div className="mb-4 flex justify-end print:hidden">
         <Button onClick={() => window.print()}>
           <Printer className="mr-2 size-4" />
@@ -144,536 +176,616 @@ export function DailySitRepPrintPage() {
       </div>
 
       <div className="mx-auto bg-white text-black shadow print:shadow-none">
-        <section className="report-page page-1">
-          <div className="grid grid-cols-[42%_58%] gap-4">
+        <section className="report-page">
+          <header className="mb-4 flex items-start justify-between border-b-4 border-[#003A78] pb-3">
             <div>
-              <h1 className="text-[20px] font-black uppercase leading-none">
+              <h1 className="text-[24px] font-black uppercase leading-none">
                 Daily Situation Report
               </h1>
 
-              <p className="mt-1 text-[14px] font-semibold italic">
-                {formatDate(data.report?.reportDate)}
+              <p className="mt-1 text-[15px] font-semibold italic">
+                {data.report?.reportDate}
               </p>
+            </div>
 
-              <h2 className="mt-6 text-[15px] font-black">
-                I. Highlights
-              </h2>
+            <div className="rounded-md bg-[#003A78] px-5 py-2 text-[13px] font-black uppercase text-white">
+              Palarong Pambansa 2026
+            </div>
+          </header>
 
-              <div className="mt-4 space-y-3 text-justify text-[14px] leading-[1.25]">
+          <div className="grid grid-cols-[34%_32%_34%] gap-4">
+            <section className="avoid-break">
+              <SectionTitle title="I. Highlights" color="#003A78" />
+
+              <div className="mt-3 rounded-md border p-3 text-justify text-[12px] leading-[1.3]">
                 {data.highlights?.length ? (
                   data.highlights.map((item: any) => (
                     <div
-                        key={item._id}
-                        className="report-html space-y-3 text-justify"
-                        dangerouslySetInnerHTML={{
-                            __html: item.description ?? "",
-                        }}
+                      key={item._id}
+                      className="report-html"
+                      dangerouslySetInnerHTML={{
+                        __html: item.description ?? "",
+                      }}
                     />
                   ))
                 ) : (
                   <p>No highlights encoded for this report date.</p>
                 )}
               </div>
-            </div>
+            </section>
 
-            <div className="space-y-3">
-              <div className="rounded-t-md bg-[#004C97] px-4 py-2 text-center text-[16px] font-black uppercase text-white">
-                Status of Playing Venue
+            <section className="avoid-break space-y-3">
+              <SectionTitle
+                title="Status of Playing Venue"
+                color="#004C97"
+              />
+
+              <VenueRow
+                label="Infrastructure"
+                value={playingVenue?.infrastructure ?? 0}
+                color="#12a04a"
+                description={playingVenue?.infrastructure_description}
+              />
+
+              <VenueRow
+                label="Peripherals"
+                value={playingVenue?.peripherals ?? 0}
+                color="#f39c12"
+                description={playingVenue?.peripherals_description}
+              />
+
+              <VenueRow
+                label="Sports Equipment"
+                value={playingVenue?.sports_equipment ?? 0}
+                color="#0070c0"
+                description={playingVenue?.sports_equipment_description}
+              />
+            </section>
+
+            <section className="avoid-break">
+              <SectionTitle
+                title="Status of Billeting Quarters"
+                color="#008037"
+              />
+
+              <div className="mt-2 rounded-xl border border-emerald-600 bg-emerald-50 px-3 py-2">
+                <p className="text-center text-[9px] font-black uppercase text-emerald-900">
+                  Overall Average Preparedness Rating
+                </p>
+
+                <p className="text-center text-[34px] font-black leading-none text-emerald-700">
+                  {percent(
+                    billeting?.overallAveragePreparednessRating,
+                  )}
+                </p>
               </div>
 
-              <div className="space-y-2">
-                <VenueRow
-                  label="Infrastructure"
-                  value={playingVenue?.infrastructure ?? 0}
-                  color="#12a04a"
-                  description={playingVenue?.infrastructure_description}
-                />
-
-                <VenueRow
-                  label="Peripherals"
-                  value={playingVenue?.peripherals ?? 0}
-                  color="#f39c12"
-                  description={playingVenue?.peripherals_description}
-                />
-
-                <VenueRow
-                  label="Sports Equipment"
-                  value={playingVenue?.sports_equipment ?? 0}
-                  color="#0070c0"
-                  description={playingVenue?.sports_equipment_description}
-                />
-              </div>
-
-              <div className="rounded-t-md bg-[#008037] px-4 py-2 text-center text-[16px] font-black uppercase text-white">
-                Status of Billeting Quarters
-              </div>
-
-              <table className="w-full border-collapse text-[8.5px]">
+              <table className="mt-2 w-full border-collapse text-[7.5px]">
                 <thead>
                   <tr className="bg-[#008037] text-white">
                     <th className="border p-1">Billeting Quarter</th>
                     <th className="border p-1">Delegation</th>
-                    <th className="border p-1">Preparedness Rating</th>
+                    <th className="border p-1">Rating</th>
                   </tr>
                 </thead>
+
                 <tbody>
-  {billeting?.list?.map((item: any, index: number) => {
-    const rating = item.preparedness_rating ?? 0
-    const status = getPreparednessBadge(rating)
+                  {billeting?.list?.map((item: any, index: number) => {
+                    const rating = item.preparedness_rating ?? 0
+                    const status = getPreparednessBadge(rating)
 
-    return (
-      <tr key={`${item.billeting_quarter}-${index}`}>
-        <td className="border px-1 py-[2px]">
-          {index + 1}. {item.billeting_quarter}
-        </td>
+                    return (
+                      <tr key={`${item.billeting_quarter}-${index}`}>
+                        <td className="border px-1 py-[2px]">
+                          {index + 1}. {item.billeting_quarter}
+                        </td>
 
-        <td className="border px-1 py-[2px]">
-          {item.delegation}
-        </td>
+                        <td className="border px-1 py-[2px]">
+                          {item.delegation}
+                        </td>
 
-        <td className="border px-1 py-[2px]">
-          <div className="flex items-center gap-1">
-            <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
-              <div
-                className={`h-2 rounded-full ${status.progress}`}
-                style={{
-                  width: `${Math.min(rating, 100)}%`,
-                }}
-              />
-            </div>
+                        <td className="border px-1 py-[2px]">
+                          <div className="flex items-center gap-1">
+                            <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                              <div
+                                className={`h-2 rounded-full ${status.progress}`}
+                                style={{
+                                  width: `${Math.min(rating, 100)}%`,
+                                }}
+                              />
+                            </div>
 
-            <span className="w-8 text-right font-bold">
-              {Number(rating).toFixed(2)}
-            </span>
+                            <span className="w-7 text-right font-bold">
+                              {Number(rating).toFixed(0)}%
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </section>
           </div>
-        </td>
-      </tr>
-    )
-  })}
-</tbody>
+
+      <div className="delegation-arrival-section mt-4">
+  <div className="delegation-header">
+    <SectionTitle
+      title="Status of Delegation Arrival"
+      color="#003A78"
+    />
+
+    <div className="delegation-summary mt-2 grid grid-cols-6 gap-2">
+      <MetricBox
+        title="Expected Delegates"
+        value={delegationArrival?.totalExpectedDelegates}
+      />
+
+      <MetricBox
+        title="Total Arrived"
+        value={delegationArrival?.totalArrived}
+      />
+
+      <MetricBox
+        title="Arrival Rate"
+        value={`${delegationArrival?.overallArrivalRate ?? 0}%`}
+      />
+
+      <MetricBox
+        title="Remaining"
+        value={delegationArrival?.remainingDelegates}
+      />
+
+      <MetricBox
+        title="Highest Rate"
+        value={`${delegationArrival?.highestArrivalRate?.rate ?? 0}%`}
+        subtitle={delegationArrival?.highestArrivalRate?.region}
+      />
+
+      <MetricBox
+        title="Assigned Billeting"
+        value={billeting?.billetingQuartersAssigned}
+      />
+    </div>
+  </div>
+
+            <div className="mt-3 grid grid-cols-[62%_38%] gap-3">
+             <table className="w-full table-fixed border-collapse text-[7.5px]">
+  <colgroup>
+    <col className="w-[36%]" />
+    <col className="w-[32%]" />
+    <col className="w-[9%]" />
+    <col className="w-[8%]" />
+    <col className="w-[15%]" />
+  </colgroup>
+
+  <thead>
+    <tr className="bg-[#003A78] text-white">
+      <th className="border p-1">
+        Delegation
+      </th>
+
+      <th className="border p-1">
+        Billeting Quarters
+      </th>
+
+      <th className="border p-1">
+        Expected
+      </th>
+
+      <th className="border p-1">
+        Arrived
+      </th>
+
+      <th className="border p-1">
+        Rate
+      </th>
+    </tr>
+  </thead>
+
+                <tbody>
+                  {delegationArrival?.progressByRegion?.map(
+                    (item: any, index: number) => (
+                      <tr key={`${item.delegation}-${index}`}>
+                        <td className="border px-1 py-[2px]">
+                          {item.delegation}
+                        </td>
+
+                        <td className="border px-1 py-[2px]">
+                          {item.billeting_quarter}
+                        </td>
+
+                        <td className="border px-1 py-[2px] text-right">
+                          {item.expected_delegates?.toLocaleString?.() ??
+                            item.expected_delegates}
+                        </td>
+
+                        <td className="border px-1 py-[2px] text-right">
+                          {item.arrived_total?.toLocaleString?.() ??
+                            item.arrived_total}
+                        </td>
+
+                        <td className="border px-1 py-[2px]">
+  <div className="flex items-center gap-1">
+    <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-200">
+      <div
+        className={`h-2 rounded-full ${
+          Number(item.arrival_rate ?? 0) >= 90
+            ? "bg-emerald-600"
+            : Number(item.arrival_rate ?? 0) >= 70
+              ? "bg-lime-500"
+              : Number(item.arrival_rate ?? 0) >= 40
+                ? "bg-amber-500"
+                : "bg-red-500"
+        }`}
+        style={{
+          width: `${Math.min(
+            Number(item.arrival_rate ?? 0),
+            100,
+          )}%`,
+        }}
+      />
+    </div>
+
+    <span className="w-8 text-right font-bold">
+      {Number(item.arrival_rate ?? 0).toFixed(0)}%
+    </span>
+  </div>
+</td>
+                      </tr>
+                    ),
+                  )}
+
+                  <tr className="bg-[#003A78] font-black text-white">
+                    <td colSpan={2} className="border px-2 py-1 uppercase">
+                      Total Number of Competing Delegations
+                    </td>
+
+                    <td className="border px-2 py-1 text-right">
+                      {delegationArrival?.totalExpectedDelegates?.toLocaleString?.()}
+                    </td>
+
+                    <td className="border px-2 py-1 text-right">
+                      {delegationArrival?.totalArrived?.toLocaleString?.()}
+                    </td>
+
+                    <td className="border px-2 py-1 text-right">
+                      {Number(
+                        delegationArrival?.overallArrivalRate ?? 0,
+                      ).toFixed(0)}
+                      %
+                    </td>
+                  </tr>
+
+                  {delegationArrival?.otherDelegations?.map(
+                    (item: any, index: number) => {
+                      const rate =
+                        item.expected_delegates > 0
+                          ? (
+                              (item.arrived / item.expected_delegates) *
+                              100
+                            ).toFixed(0)
+                          : "0"
+
+                      return (
+                        <tr key={`other-${index}`} className="bg-slate-50">
+                          <td colSpan={2} className="border px-2 py-1">
+                            {item.description}
+                          </td>
+
+                          <td className="border px-2 py-1 text-right">
+                            {item.expected_delegates?.toLocaleString?.()}
+                          </td>
+
+                          <td className="border px-2 py-1 text-right">
+                            {item.arrived?.toLocaleString?.()}
+                          </td>
+
+                          <td className="border px-2 py-1 text-right">
+                            {rate}%
+                          </td>
+                        </tr>
+                      )
+                    },
+                  )}
+
+                  <tr className="bg-[#003A78] font-black text-yellow-300">
+                    <td colSpan={2} className="border px-2 py-1 uppercase">
+                      Total Number of Delegations
+                    </td>
+
+                    <td className="border px-2 py-1 text-right">
+                      {delegationArrival?.grandTotalExpected?.toLocaleString?.()}
+                    </td>
+
+                    <td className="border px-2 py-1 text-right">
+                      {delegationArrival?.grandTotalArrived?.toLocaleString?.()}
+                    </td>
+
+                    <td className="border px-2 py-1 text-right">
+                      {Number(
+                        delegationArrival?.grandOverallArrivalRate ?? 0,
+                      ).toFixed(0)}
+                      %
+                    </td>
+                  </tr>
+                </tbody>
               </table>
 
-              <div className="rounded-xl border border-emerald-600 bg-emerald-50 px-3 py-2">
-  <div className="flex items-center justify-between gap-3">
-    <div className="max-w-[120px]">
-      <p className="text-left text-[9px] font-black uppercase leading-tight text-emerald-900">
-        Overall Average Preparedness Rating
-      </p>
-    </div>
+              <div className="space-y-3">
+                <div className="rounded-md border p-3">
+                  <div className="rounded-t-md bg-[#003A78] p-1 text-center text-[10px] font-black uppercase text-white">
+                    Composition of Arrived Personnel
+                  </div>
 
-    <div className="flex items-center gap-2">
-      <p className="text-[34px] font-black leading-none text-emerald-700">
-        {percent(
-          billeting?.overallAveragePreparednessRating,
-        )}
-      </p>
+                  <div className="mt-3 grid grid-cols-[120px_1fr] items-center gap-3">
+                    <ArrivalCompositionDonut
+                      athletes={delegationArrival?.composition?.athletes}
+                      coaches={delegationArrival?.composition?.coaches}
+                      advanceParty={
+                        delegationArrival?.composition?.advance_party
+                      }
+                      trainers={delegationArrival?.composition?.trainers}
+                    />
 
-      <div className="flex size-9 items-center justify-center rounded-full bg-emerald-700 text-[18px] text-white shadow-sm">
-        ✓
-      </div>
-    </div>
-  </div>
-</div>
-<div className="mt-2 flex flex-wrap items-center justify-center gap-1 text-[7px]">
-  <div className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-[2px]">
-    <div className="size-2 rounded-full bg-emerald-600" />
-    <span className="font-bold text-emerald-800">
-      95%+
-    </span>
-  </div>
+                    <div className="grid grid-cols-1 gap-2 text-[9px]">
+                      <CompositionLegend
+                        label="Athletes"
+                        value={delegationArrival?.composition?.athletes}
+                        total={delegationArrival?.composition?.total}
+                        color="#0070C0"
+                      />
 
-  <div className="flex items-center gap-1 rounded-full bg-lime-50 px-2 py-[2px]">
-    <div className="size-2 rounded-full bg-lime-500" />
-    <span className="font-bold text-lime-800">
-      85% - 94.99%
-    </span>
-  </div>
+                      <CompositionLegend
+                        label="Coaches, Asst. Coaches & Chaperones"
+                        value={delegationArrival?.composition?.coaches}
+                        total={delegationArrival?.composition?.total}
+                        color="#43A047"
+                      />
 
-  <div className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-[2px]">
-    <div className="size-2 rounded-full bg-amber-500" />
-    <span className="font-bold text-amber-800">
-      Below 85%
-    </span>
-  </div>
-</div>
-            </div>
-          </div>
-<div className="delegation-arrival-page">
-<div className="mt-4 rounded-t-md bg-[#003A78] px-4 py-2 text-center text-[16px] font-black uppercase text-white">
-            Status of Delegation Arrival
-          </div>
+                      <CompositionLegend
+                        label="Advance Party, TWO, Delegation Officials"
+                        value={delegationArrival?.composition?.advance_party}
+                        total={delegationArrival?.composition?.total}
+                        color="#F39C12"
+                      />
 
-          <div className="mt-2 grid grid-cols-6 gap-2">
-            <MetricBox title="Expected Number of Delegates" value={delegationArrival?.totalExpectedDelegates} />
-            <MetricBox title="Total Delegates Arrived" value={delegationArrival?.totalArrived} />
-            <MetricBox title="Overall Arrival Rate" value={`${delegationArrival?.overallArrivalRate ?? 0}%`} />
-            <MetricBox title="Remaining Delegates" value={delegationArrival?.remainingDelegates} />
-            <MetricBox
-              title="Highest Arrival Rate"
-              value={`${delegationArrival?.highestArrivalRate?.rate ?? 0}%`}
-              subtitle={delegationArrival?.highestArrivalRate?.region}
-            />
-            <MetricBox title="Billeting Quarters Assigned" value={billeting?.billetingQuartersAssigned} />
-          </div>
-
-<div className="mt-3 space-y-3">
-  <table className="w-full border-collapse text-[8px]">
-    <thead>
-      <tr className="bg-[#003A78] text-white">
-        <th className="border p-1">Delegation</th>
-        <th className="border p-1">Billeting Quarters</th>
-        <th className="border p-1">Expected</th>
-        <th className="border p-1">Arrived</th>
-        <th className="border p-1">Arrival Rate</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      {delegationArrival?.progressByRegion?.map(
-        (item: any, index: number) => (
-          <tr key={`${item.delegation}-${index}`}>
-            <td className="border px-1 py-[2px]">
-              {item.delegation}
-            </td>
-
-            <td className="border px-1 py-[2px]">
-              {item.billeting_quarter}
-            </td>
-
-            <td className="border px-1 py-[2px] text-right">
-              {item.expected_delegates?.toLocaleString?.() ??
-                item.expected_delegates}
-            </td>
-
-            <td className="border px-1 py-[2px] text-right">
-              {item.arrived_total?.toLocaleString?.() ??
-                item.arrived_total}
-            </td>
-
-            <td className="border px-1 py-[2px]">
-              <div className="flex items-center gap-1">
-                <div className="h-2 flex-1 bg-slate-100">
-                  <div
-                    className="h-2 bg-[#43a047]"
-                    style={{
-                      width: `${Math.min(
-                        item.arrival_rate ?? 0,
-                        100,
-                      )}%`,
-                    }}
-                  />
+                      <CompositionLegend
+                        label="Trainers"
+                        value={delegationArrival?.composition?.trainers}
+                        total={delegationArrival?.composition?.total}
+                        color="#5E35B1"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <span className="w-10 text-right">
-                  {Number(item.arrival_rate ?? 0).toFixed(2)}%
-                </span>
+                <div className="rounded-md border p-3 text-center">
+                  <div className="rounded-t-md bg-[#003A78] p-1 text-[10px] font-black uppercase text-white">
+                    Billeting Quarters Assignment Summary
+                  </div>
+
+                  <p className="mt-3 text-[10px] font-bold uppercase text-blue-900">
+                    Total Identified Billeting Quarters
+                  </p>
+
+                  <p className="text-[28px] font-black text-blue-900">
+                    {billeting?.totalIdentifiedBilletingQuarters ?? 0}
+                  </p>
+
+                  <p className="mt-1 text-[9px] leading-tight">
+                    {billeting?.identifiedBilletingQuartersText}
+                  </p>
+                </div>
               </div>
-            </td>
-          </tr>
-        ),
-      )}
-
-      {/* TOTAL COMPETING DELEGATIONS */}
-  <tr className="bg-[#003A78] font-black text-white">
-    <td
-      colSpan={2}
-      className="border px-2 py-1 uppercase"
-    >
-      Total Number of Competing Delegations
-    </td>
-
-    <td className="border px-2 py-1 text-right">
-      {delegationArrival?.totalExpectedDelegates?.toLocaleString?.()}
-    </td>
-
-    <td className="border px-2 py-1 text-right">
-      {delegationArrival?.totalArrived?.toLocaleString?.()}
-    </td>
-
-    <td className="border px-2 py-1 text-right">
-      {Number(
-        delegationArrival?.overallArrivalRate ?? 0,
-      ).toFixed(0)}
-      %
-    </td>
-  </tr>
-
-  {/* OTHER DELEGATIONS */}
-  {delegationArrival?.otherDelegations?.map(
-    (item: any, index: number) => {
-      const rate =
-        item.expected_delegates > 0
-          ? (
-              (item.arrived /
-                item.expected_delegates) *
-              100
-            ).toFixed(0)
-          : "0"
-
-      return (
-        <tr
-          key={`other-${index}`}
-          className="bg-slate-50"
-        >
-          <td
-            colSpan={2}
-            className="border px-2 py-1"
-          >
-            {item.description}
-          </td>
-
-          <td className="border px-2 py-1 text-right">
-            {item.expected_delegates?.toLocaleString?.()}
-          </td>
-
-          <td className="border px-2 py-1 text-right">
-            {item.arrived?.toLocaleString?.()}
-          </td>
-
-          <td className="border px-2 py-1 text-right">
-            {rate}%
-          </td>
-        </tr>
-      )
-    },
-  )}
-
-  {/* GRAND TOTAL */}
-  <tr className="bg-[#003A78] font-black text-yellow-300">
-    <td
-      colSpan={2}
-      className="border px-2 py-1 uppercase"
-    >
-      Total Number of Delegations
-    </td>
-
-    <td className="border px-2 py-1 text-right">
-      {delegationArrival?.grandTotalExpected?.toLocaleString?.()}
-    </td>
-
-    <td className="border px-2 py-1 text-right">
-      {delegationArrival?.grandTotalArrived?.toLocaleString?.()}
-    </td>
-
-    <td className="border px-2 py-1 text-right">
-      {Number(
-        delegationArrival?.grandOverallArrivalRate ?? 0,
-      ).toFixed(0)}
-      %
-    </td>
-  </tr>
-    </tbody>
-  </table>
-
-  <div className="grid grid-cols-2 gap-3">
-    <div className="rounded-md border p-3">
-      <div className="rounded-t-md bg-[#003A78] p-1 text-center text-[12px] font-black uppercase text-white">
-        Composition of Arrived Personnel
-      </div>
-
-      <div className="mt-3 grid grid-cols-[150px_1fr] items-center gap-3">
-  <ArrivalCompositionDonut
-    athletes={delegationArrival?.composition?.athletes}
-    coaches={delegationArrival?.composition?.coaches}
-    advanceParty={delegationArrival?.composition?.advance_party}
-    trainers={delegationArrival?.composition?.trainers}
-  />
-
-  <div className="grid grid-cols-1 gap-2 text-[10px]">
-    <CompositionLegend
-      label="Athletes"
-      value={delegationArrival?.composition?.athletes}
-      total={delegationArrival?.composition?.total}
-      color="#0070C0"
-    />
-
-    <CompositionLegend
-      label="Coaches, Asst. Coaches & Chaperones"
-      value={delegationArrival?.composition?.coaches}
-      total={delegationArrival?.composition?.total}
-      color="#43A047"
-    />
-
-    <CompositionLegend
-      label="Advance Party, TWO, Delegation Officials"
-      value={delegationArrival?.composition?.advance_party}
-      total={delegationArrival?.composition?.total}
-      color="#F39C12"
-    />
-
-    <CompositionLegend
-      label="Trainers"
-      value={delegationArrival?.composition?.trainers}
-      total={delegationArrival?.composition?.total}
-      color="#5E35B1"
-    />
-  </div>
-</div>
-    </div>
-
-    <div className="rounded-md border p-4 text-center">
-      <div className="rounded-t-md bg-[#003A78] p-1 text-[12px] font-black uppercase text-white">
-        Billeting Quarters Assignment Summary
-      </div>
-
-      <p className="mt-4 text-[11px] font-bold uppercase text-blue-900">
-        Total Identified Billeting Quarters
-      </p>
-
-      <p className="text-[30px] font-black text-blue-900">
-        {billeting?.totalIdentifiedBilletingQuarters ?? 0}
-      </p>
-
-      <p className="mt-2 text-[11px] leading-tight">
-        {billeting?.identifiedBilletingQuartersText}
-      </p>
-    </div>
-  </div>
-</div>
-</div>
-          
+            </div>
+          </div>
         </section>
 
-        <section className="report-page page-2">
-          <h2 className="text-[16px] font-black">
-            II. Current Situation
-          </h2>
+        <section className="report-page">
+          <header className="mb-4 flex items-start justify-between border-b-4 border-[#003A78] pb-3">
+            <div>
+              <h1 className="text-[20px] font-black uppercase leading-none">
+                Daily Situation Report
+              </h1>
 
-          <table className="mt-3 w-full border-collapse text-[10px]">
-            <thead>
-              <tr>
-                <th className="border border-black p-2">Committee</th>
-                <th className="border border-black p-2">AREA/CONCERN</th>
-                <th className="border border-black p-2">CURRENT SITUATION</th>
-                <th className="border border-black p-2">ISSUES/CONCERNS</th>
-                <th className="border border-black p-2">ACTIONS UNDERTAKEN</th>
-                <th className="border border-black p-2">RECOMMENDATIONS</th>
-              </tr>
-            </thead>
+              <p className="mt-1 text-[13px] font-semibold italic">
+                {data.report?.reportDate}
+              </p>
+            </div>
 
-            <tbody>
-  {data.currentSituation?.length ? (
-    groupCurrentSituations(data.currentSituation).flatMap((committeeGroup) =>
-      committeeGroup.areaGroups.flatMap((areaGroup, areaIndex) =>
-        areaGroup.items.map((item: any, itemIndex: number) => (
-          <tr key={item._id}>
-            {areaIndex === 0 && itemIndex === 0 && (
-              <td
-                rowSpan={committeeGroup.totalRows}
-                className="border border-black p-2 align-middle text-center font-medium"
-              >
-                {committeeGroup.committee}
-              </td>
-            )}
+            <div className="text-[10px] font-bold uppercase text-slate-500">
+              Continuation Page
+            </div>
+          </header>
 
-            {itemIndex === 0 && (
-              <td
-                rowSpan={areaGroup.items.length}
-                className="border border-black p-2 align-middle"
-              >
-                {areaGroup.areaConcern}
-              </td>
-            )}
+          <section className="print-section w-full">
+            <SectionTitle title="II. Current Situation" color="#003A78" />
 
-            <td className="border border-black p-2 align-top">
-              <div
-  dangerouslySetInnerHTML={{
-    __html: item.cuurent_situation || "—",
-  }}
-/>
-            </td>
+            <table className="mt-3 w-full border-collapse text-[10px]">
+              <thead>
+                <tr className="bg-slate-100">
+                  <th className="border border-black p-1">Committee</th>
+                  <th className="border border-black p-1">Area/Concern</th>
+                  <th className="border border-black p-1">Current Situation</th>
+                  <th className="border border-black p-1">Issues/Concerns</th>
+                  <th className="border border-black p-1">Actions Undertaken</th>
+                  <th className="border border-black p-1">Recommendations</th>
+                </tr>
+              </thead>
 
-            <td className="border border-black p-2 align-top">
-              <div
-  dangerouslySetInnerHTML={{
-    __html: item.issues_concerns || "—",
-  }}
-/>
-            </td>
+              <tbody>
+                {data.currentSituation?.length ? (
+                  groupCurrentSituations(data.currentSituation).flatMap(
+                    (committeeGroup) =>
+                      committeeGroup.areaGroups.flatMap(
+                        (areaGroup, areaIndex) =>
+                          areaGroup.items.map(
+                            (item: any, itemIndex: number) => (
+                              <tr key={item._id}>
+                                {areaIndex === 0 && itemIndex === 0 && (
+                                  <td
+                                    rowSpan={committeeGroup.totalRows}
+                                    className="border border-black p-1 align-middle text-center font-medium"
+                                  >
+                                    {committeeGroup.committee}
+                                  </td>
+                                )}
 
-            <td className="border border-black p-2 align-top">
-              <div
-  dangerouslySetInnerHTML={{
-    __html: item.actions_undertaken || "—",
-  }}
-/>
-            </td>
+                                {itemIndex === 0 && (
+                                  <td
+                                    rowSpan={areaGroup.items.length}
+                                    className="border border-black p-1 align-middle"
+                                  >
+                                    {areaGroup.areaConcern}
+                                  </td>
+                                )}
 
-            <td className="border border-black p-2 align-top">
-              <div
-  dangerouslySetInnerHTML={{
-    __html: item.recommendations || "—",
-  }}
-/>
-            </td>
-          </tr>
-        )),
-      ),
-    )
-  ) : (
-    <EmptyRows columns={6} rows={5} />
-  )}
-</tbody>
-          </table>
+                                <td className="border border-black p-1 align-top">
+                                  <div
+                                    dangerouslySetInnerHTML={{
+                                      __html: item.cuurent_situation || "—",
+                                    }}
+                                  />
+                                </td>
 
-          <h2 className="mt-8 text-[16px] font-black">
-            III. Reported Incidents
-          </h2>
+                                <td className="border border-black p-1 align-top">
+                                  <div
+                                    dangerouslySetInnerHTML={{
+                                      __html: item.issues_concerns || "—",
+                                    }}
+                                  />
+                                </td>
 
-          <table className="mt-3 w-full border-collapse text-[9px]">
-            <thead>
-              <tr>
-                <th className="border border-black p-2">Date</th>
-                <th className="border border-black p-2">Time</th>
-                <th className="border border-black p-2">Venue/Location</th>
-                <th className="border border-black p-2">Incident</th>
-                <th className="border border-black p-2">Persons Involved</th>
-                <th className="border border-black p-2">Initial Action Taken</th>
-                <th className="border border-black p-2">Current Status</th>
-                <th className="border border-black p-2">Remarks</th>
-              </tr>
-            </thead>
+                                <td className="border border-black p-1 align-top">
+                                  <div
+                                    dangerouslySetInnerHTML={{
+                                      __html: item.actions_undertaken || "—",
+                                    }}
+                                  />
+                                </td>
 
-            <tbody>
-              {data.reportedIncidents?.length ? (
-                data.reportedIncidents.map((item: any) => (
-                  <tr key={item._id}>
-                    <td className="border border-black p-2">
-                      {formatDate(item.Date)}
-                    </td>
-                    <td className="border border-black p-2">{item.Time}</td>
-                    <td className="border border-black p-2">{item.venue_location}</td>
-                    <td className="border border-black p-2">{item.Incident}</td>
-                    <td className="border border-black p-2">{item.persons_involved}</td>
-                    <td className="border border-black p-2">{item.initial_action_taken}</td>
-                    <td className="border border-black p-2">{item.current_status}</td>
-                    <td className="border border-black p-2">{item.Remarks}</td>
+                                <td className="border border-black p-1 align-top">
+                                  <div
+                                    dangerouslySetInnerHTML={{
+                                      __html: item.recommendations || "—",
+                                    }}
+                                  />
+                                </td>
+                              </tr>
+                            ),
+                          ),
+                      ),
+                  )
+                ) : (
+                  <EmptyRows columns={6} rows={5} />
+                )}
+              </tbody>
+            </table>
+          </section>
+
+          <div className="mt-5 space-y-5">
+            <section className="print-section w-full">
+              <SectionTitle title="III. Reported Incidents" color="#8A1C1C" />
+
+              <table className="mt-3 w-full border-collapse text-[10px]">
+                <thead>
+                  <tr className="bg-slate-100">
+                    <th className="border border-black p-1">Date</th>
+                    <th className="border border-black p-1">Time</th>
+                    <th className="border border-black p-1">Venue/Location</th>
+                    <th className="border border-black p-1">Incident</th>
+                    <th className="border border-black p-1">Persons Involved</th>
+                    <th className="border border-black p-1">Initial Action</th>
+                    <th className="border border-black p-1">Current Status</th>
+                    <th className="border border-black p-1">Remarks</th>
                   </tr>
-                ))
-              ) : (
-                <EmptyRows columns={8} rows={5} />
-              )}
-            </tbody>
-          </table>
+                </thead>
 
-          <h2 className="mt-8 text-[16px] font-black">
-            IV. Other Information
-          </h2>
+                <tbody>
+                  {data.reportedIncidents?.length ? (
+                    data.reportedIncidents.map((item: any) => (
+                      <tr key={item._id}>
+                        <td className="border border-black p-1">
+                          {formatDate(item.Date)}
+                        </td>
 
-          <ul className="mt-4 list-disc space-y-2 pl-8 text-[12px]">
-            {data.otherInformation?.length ? (
-              data.otherInformation.map((item: any) => (
-                <li key={item._id}>{stripHtml(item.description)}</li>
-              ))
-            ) : (
-              <>
-                <li>.</li>
-                <li>.</li>
-              </>
-            )}
-          </ul>
+                        <td className="border border-black p-1">
+                          {item.Time}
+                        </td>
+
+                        <td className="border border-black p-1">
+                          {item.venue_location}
+                        </td>
+
+                        <td className="border border-black p-1">
+                          {item.Incident}
+                        </td>
+
+                        <td className="border border-black p-1">
+                          {item.persons_involved}
+                        </td>
+
+                        <td className="border border-black p-1">
+                          {item.initial_action_taken}
+                        </td>
+
+                        <td className="border border-black p-1">
+                          {item.current_status}
+                        </td>
+
+                        <td className="border border-black p-1">
+                          {item.Remarks}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <EmptyRows columns={8} rows={5} />
+                  )}
+                </tbody>
+              </table>
+            </section>
+
+            <section className="print-section w-full">
+              <SectionTitle title="IV. Other Information" color="#444444" />
+
+              <div className="mt-3 rounded-md border p-3">
+                <ul className="list-disc space-y-2 pl-5 text-[10px] leading-tight">
+                  {data.otherInformation?.length ? (
+                    data.otherInformation.map((item: any) => (
+                      <li key={item._id}>
+                        {stripHtml(item.description)}
+                      </li>
+                    ))
+                  ) : (
+                    <>
+                      <li>.</li>
+                      <li>.</li>
+                    </>
+                  )}
+                </ul>
+              </div>
+            </section>
+          </div>
         </section>
       </div>
+    </div>
+  )
+}
+
+function SectionTitle({
+  title,
+  color,
+}: {
+  title: string
+  color: string
+}) {
+  return (
+    <div
+      className="section-title rounded-t-md px-3 py-1.5 text-center text-[13px] font-black uppercase text-white"
+      style={{ backgroundColor: color }}
+    >
+      {title}
     </div>
   )
 }
@@ -695,16 +807,16 @@ function CompositionLegend({
   return (
     <div className="flex items-center gap-2">
       <div
-        className="size-4 rounded-full"
+        className="size-3 rounded-full"
         style={{ backgroundColor: color }}
       />
 
       <div className="leading-tight">
-        <p className="text-[9px] font-black uppercase">
+        <p className="text-[8px] font-black uppercase">
           {label}
         </p>
 
-        <p className="text-[9px] font-bold" style={{ color }}>
+        <p className="text-[8px] font-bold" style={{ color }}>
           {value.toLocaleString()} ({percent}%)
         </p>
       </div>
@@ -735,14 +847,14 @@ function ArrivalCompositionDonut({
   let current = 0
 
   return (
-    <div className="relative size-36">
-      <svg viewBox="0 0 42 42" className="size-36 -rotate-90">
+    <div className="relative size-28">
+      <svg viewBox="0 0 42 42" className="size-28 -rotate-90">
         {items.map((item) => {
-          const percent = (item.value / total) * 100
-          const dash = `${percent} ${100 - percent}`
+          const itemPercent = (item.value / total) * 100
+          const dash = `${itemPercent} ${100 - itemPercent}`
           const offset = -current
 
-          current += percent
+          current += itemPercent
 
           return (
             <circle
@@ -761,14 +873,16 @@ function ArrivalCompositionDonut({
       </svg>
 
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="flex size-16 flex-col items-center justify-center rounded-full bg-white text-center shadow">
-          <span className="text-[8px] font-black uppercase leading-none">
+        <div className="flex size-14 flex-col items-center justify-center rounded-full bg-white text-center shadow">
+          <span className="text-[7px] font-black uppercase leading-none">
             Total
           </span>
-          <span className="text-[8px] font-black uppercase leading-none">
+
+          <span className="text-[7px] font-black uppercase leading-none">
             Arrived
           </span>
-          <span className="text-[18px] font-black text-blue-900">
+
+          <span className="text-[15px] font-black text-blue-900">
             {total.toLocaleString()}
           </span>
         </div>
@@ -785,11 +899,8 @@ function DonutPercent({
   color: string
 }) {
   const radius = 18
+  const circumference = 2 * Math.PI * radius
 
-  const circumference =
-    2 * Math.PI * radius
-
-  // keeps a visible gap even for very high %
   const visualProgress =
     value >= 95
       ? value - 2
@@ -804,16 +915,11 @@ function DonutPercent({
 
   const dashOffset =
     circumference -
-    (progress / 100) *
-      circumference
+    (progress / 100) * circumference
 
   return (
-    <div className="relative size-14">
-      <svg
-        viewBox="0 0 48 48"
-        className="-rotate-90 size-14"
-      >
-        {/* background track */}
+    <div className="relative size-12">
+      <svg viewBox="0 0 48 48" className="size-12 -rotate-90">
         <circle
           cx="24"
           cy="24"
@@ -823,7 +929,6 @@ function DonutPercent({
           strokeWidth="7"
         />
 
-        {/* progress */}
         <circle
           cx="24"
           cy="24"
@@ -834,19 +939,12 @@ function DonutPercent({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={dashOffset}
-          style={{
-            transition:
-              "stroke-dashoffset 0.4s ease",
-          }}
         />
       </svg>
 
-      {/* center text */}
       <div
-        className="absolute inset-0 flex items-center justify-center text-[8px] font-black"
-        style={{
-          color,
-        }}
+        className="absolute inset-0 flex items-center justify-center text-[7px] font-black"
+        style={{ color }}
       >
         {Number(value).toFixed(2)}%
       </div>
@@ -874,23 +972,25 @@ function groupCurrentSituations(items: any[]) {
     areaMap.get(areaConcern)!.push(item)
   })
 
-  return Array.from(committeeMap.entries()).map(([committee, areaMap]) => {
-    const areaGroups = Array.from(areaMap.entries()).map(
-      ([areaConcern, areaItems]) => ({
-        areaConcern,
-        items: areaItems,
-      }),
-    )
+  return Array.from(committeeMap.entries()).map(
+    ([committee, areaMap]) => {
+      const areaGroups = Array.from(areaMap.entries()).map(
+        ([areaConcern, areaItems]) => ({
+          areaConcern,
+          items: areaItems,
+        }),
+      )
 
-    return {
-      committee,
-      areaGroups,
-      totalRows: areaGroups.reduce(
-        (sum, group) => sum + group.items.length,
-        0,
-      ),
-    }
-  })
+      return {
+        committee,
+        areaGroups,
+        totalRows: areaGroups.reduce(
+          (sum, group) => sum + group.items.length,
+          0,
+        ),
+      }
+    },
+  )
 }
 
 function VenueRow({
@@ -904,36 +1004,25 @@ function VenueRow({
   color: string
   description?: string
 }) {
-  const textLength =
-    description?.length ?? 0
-
-  const textSize =
-    textLength > 220
-      ? "text-[7px]"
-      : textLength > 140
-        ? "text-[8px]"
-        : "text-[9px]"
-
   return (
-    <div className="grid h-[78px] grid-cols-[72px_1fr] gap-2 rounded-lg border p-2">
+    <div className="grid h-[66px] grid-cols-[78px_1fr] gap-2 rounded-lg border bg-white p-2">
       <div className="flex flex-col items-center justify-center gap-1">
-        <p className="text-center text-[7px] font-black uppercase leading-tight">
+        <p className="text-center text-[6.5px] font-black uppercase leading-none">
           {label}
         </p>
-<DonutPercent value={value} color={color} />
+
+        <DonutPercent value={value} color={color} />
       </div>
 
-      <div
-        className="flex h-full items-center justify-center overflow-hidden rounded-lg border px-2 py-1 text-center leading-tight"
+<div
+  className="flex h-full items-center justify-center overflow-hidden rounded-lg border px-3 pt-1 pb-4 text-center"
         style={{
           borderColor: color,
-          backgroundColor: `${color}18`,
+          backgroundColor: `${color}12`,
           color,
         }}
       >
-        <p
-          className={`${textSize} line-clamp-4 font-medium`}
-        >
+        <p className="line-clamp-3 text-[8px] font-bold leading-tight">
           {description || "—"}
         </p>
       </div>
@@ -952,17 +1041,18 @@ function MetricBox({
 }) {
   return (
     <div className="rounded-lg border border-blue-200 bg-white p-2 text-center">
-      <p className="text-[9px] font-black uppercase text-blue-900">
+      <p className="text-[8px] font-black uppercase text-blue-900">
         {title}
       </p>
- 
-      <p className="mt-1 text-[20px] font-black text-blue-800">
-  {typeof value === "number"
-    ? value.toLocaleString()
-    : value ?? 0}
-</p>
-           {subtitle && (
-        <p className="text-[8px] font-bold text-cyan-700">
+
+      <p className="mt-1 text-[18px] font-black text-blue-800">
+        {typeof value === "number"
+          ? value.toLocaleString()
+          : value ?? 0}
+      </p>
+
+      {subtitle && (
+        <p className="text-[7px] font-bold text-cyan-700">
           {subtitle}
         </p>
       )}
@@ -984,7 +1074,7 @@ function EmptyRows({
           {Array.from({ length: columns }).map((_, colIndex) => (
             <td
               key={colIndex}
-              className="h-8 border border-black p-2"
+              className="h-7 border border-black p-1"
             />
           ))}
         </tr>

@@ -29,7 +29,10 @@ export class ReportsController {
 
   @Post('daily/generate')
   generateDaily(@Body() dto: GenerateDailyReportDto) {
-    return this.reportsService.generateDailyReport(dto.ReportDate)
+    return this.reportsService.generateDailyReport(
+      dto.ReportDate,
+      dto.ReportCutoff,
+    )
   }
 
   @Get('daily/:date')

@@ -49,8 +49,13 @@ import type { UpdateMiscPayload } from "@/features/misc/types/misc.types"
 
 import { useDashboardSummaryQuery } from "@/features/dashboard/hooks/useDashboardSummaryQuery"
 
+import { ARS_PERMISSIONS } from '@/shared/constants/ars-permissions'
+import { authStore } from '@/features/auth/services/auth-store'
+
 const modules = [
-  {
+  authStore.hasArsAccess(
+    ARS_PERMISSIONS.HIGHLIGHTS,
+  ) && {
     title: "Highlights",
     description:
       "Daily report summaries and major updates",
@@ -58,7 +63,9 @@ const modules = [
     href: "/highlights",
   },
 
-  {
+  authStore.hasArsAccess(
+    ARS_PERMISSIONS.BILLETING_QUARTERS,
+  ) && {
     title: "Billeting Quarters",
     description:
       "Preparedness ratings and delegation assignments",
@@ -66,7 +73,9 @@ const modules = [
     href: "/billeting-quarters",
   },
 
-  {
+  authStore.hasArsAccess(
+    ARS_PERMISSIONS.PLAYING_VENUES,
+  ) && {
     title: "Playing Venues",
     description:
       "Infrastructure, peripherals, and sports equipment status",
@@ -74,7 +83,9 @@ const modules = [
     href: "/playing-venue",
   },
 
-  {
+  authStore.hasArsAccess(
+    ARS_PERMISSIONS.CURRENT_SITUATIONS,
+  ) && {
     title: "Current Situations",
     description:
       "Committee updates, concerns, and recommendations",
@@ -82,7 +93,9 @@ const modules = [
     href: "/current-situation",
   },
 
-  {
+  authStore.hasArsAccess(
+    ARS_PERMISSIONS.REPORTED_INCIDENTS,
+  ) && {
     title: "Reported Incidents",
     description:
       "Incident logs and current status monitoring",
@@ -90,14 +103,16 @@ const modules = [
     href: "/reported-incidents",
   },
 
-  {
+  authStore.hasArsAccess(
+    ARS_PERMISSIONS.OTHER_INFORMATION,
+  ) && {
     title: "Other Information",
     description:
       "Additional notes and operational reminders",
     icon: Info,
     href: "/other-information",
   },
-]
+].filter(Boolean)
 
 export function DashboardPage() {
   const navigate = useNavigate()
@@ -447,16 +462,20 @@ export function DashboardPage() {
                   Venue
                 </div>
 
-                <Button
-                  size="sm"
-                  onClick={() =>
-                    setOpenPlayingVenueForm(
-                      true,
-                    )
-                  }
-                >
-                  Update
-                </Button>
+                {authStore.hasArsAccess(
+  ARS_PERMISSIONS.PLAYING_VENUES,
+) && (
+  <Button
+    size="sm"
+    onClick={() =>
+      setOpenPlayingVenueForm(
+        true,
+      )
+    }
+  >
+    Update
+  </Button>
+)}
               </CardTitle>
             </CardHeader>
 
@@ -629,54 +648,52 @@ export function DashboardPage() {
           </Card>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-2 lg:grid-cols-3">
-            {modules.map((item) => {
-              const Icon =
-                item.icon
+  {modules
+    .filter(Boolean)
+    .map((item: any) => {
+      const Icon =
+        item.icon
 
-              return (
-                <Card
-                  key={item.title}
-                  onClick={() => {
-                    if (
-                      item.title ===
-                      "Playing Venues"
-                    ) {
-                      setOpenPlayingVenueForm(
-                        true,
-                      )
-
-                      return
-                    }
-
-                    navigate({
-                      to: item.href,
-                    })
-                  }}
-                  className="group cursor-pointer rounded-2xl border-0 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-                >
-                  <CardContent className="flex h-full flex-col gap-4 p-5">
-                    <div className="flex size-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-800 group-hover:bg-blue-900 group-hover:text-white">
-                      <Icon className="size-6" />
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-900">
-                        {
-                          item.title
-                        }
-                      </h3>
-
-                      <p className="mt-1 text-sm leading-6 text-slate-500">
-                        {
-                          item.description
-                        }
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+      return (
+        <Card
+          key={item.title}
+          onClick={() => {
+            if (
+              item.title ===
+              "Playing Venues"
+            ) {
+              setOpenPlayingVenueForm(
+                true,
               )
-            })}
-          </div>
+
+              return
+            }
+
+            navigate({
+              to: item.href,
+            })
+          }}
+          className="group cursor-pointer rounded-2xl border-0 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+        >
+          <CardContent className="flex h-full flex-col gap-4 p-5">
+            <div className="flex size-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-800 group-hover:bg-blue-900 group-hover:text-white">
+              <Icon className="size-6" />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">
+                {item.title}
+              </h3>
+
+              <p className="mt-1 text-sm leading-6 text-slate-500">
+                {item.description}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )
+    })}
+</div>
         </section>
       </div>
 

@@ -1,4 +1,3 @@
-// src/features/reported-incidents/reported-incidents.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
@@ -18,20 +17,28 @@ export class ReportedIncidentsService {
     private readonly reportedIncidentModel: Model<ReportedIncidentDocument>,
   ) {}
 
-async create(dto: CreateReportedIncidentDto, userId: string) {
-  const created = await this.reportedIncidentModel.create({
-    ...dto,
-    AddedBy: new Types.ObjectId(userId),
-  })
+  async create(
+    dto: CreateReportedIncidentDto,
+    userId: string,
+    groupID: number,
+  ) {
+    const created = await this.reportedIncidentModel.create({
+      ...dto,
+      GroupID: groupID ?? 0,
+      AddedBy: new Types.ObjectId(userId),
+    })
 
-  return {
-    success: true,
-    message: 'Reported incident created successfully',
-    data: created,
+    return {
+      success: true,
+      message: 'Reported incident created successfully',
+      data: created,
+    }
   }
-}
 
-  async findAll(query: FetchReportedIncidentsDto) {
+  async findAll(
+    query: FetchReportedIncidentsDto,
+    userGroupID: number,
+  ) {
     const page = query.page ?? 1
     const limit = query.limit ?? 10
     const skip = (page - 1) * limit
@@ -41,6 +48,15 @@ async create(dto: CreateReportedIncidentDto, userId: string) {
     const sortOrder = query.sortOrder ?? 'desc'
 
     const filter: Record<string, any> = {}
+
+    const unrestrictedGroups = [1, 2, 3, 4, 5, 6, 7]
+
+    if (
+      userGroupID &&
+      !unrestrictedGroups.includes(userGroupID)
+    ) {
+      filter.GroupID = userGroupID
+    }
 
     if (search) {
       filter.$or = [
@@ -97,11 +113,12 @@ async create(dto: CreateReportedIncidentDto, userId: string) {
   }
 
   async update(id: string, dto: UpdateReportedIncidentDto) {
-    const updated = await this.reportedIncidentModel.findByIdAndUpdate(
-      id,
-      dto,
-      { new: true },
-    )
+    const updated =
+      await this.reportedIncidentModel.findByIdAndUpdate(
+        id,
+        dto,
+        { new: true },
+      )
 
     if (!updated) {
       throw new NotFoundException('Reported incident not found')
@@ -115,7 +132,8 @@ async create(dto: CreateReportedIncidentDto, userId: string) {
   }
 
   async remove(id: string) {
-    const deleted = await this.reportedIncidentModel.findByIdAndDelete(id)
+    const deleted =
+      await this.reportedIncidentModel.findByIdAndDelete(id)
 
     if (!deleted) {
       throw new NotFoundException('Reported incident not found')

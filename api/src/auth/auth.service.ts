@@ -41,11 +41,18 @@ export class AuthService {
       throw new ForbiddenException('Account is inactive')
     }
 
+    const arsIds =
+      await this.sqlServerAuthService.findUserArsIds(
+        Number(sqlUser.id),
+      )
+
     const user = await this.findOrCreateMongoUser({
       sqlServerUserId: String(sqlUser.id),
       username: sqlUser.username,
       name: sqlUser.name,
-      regionID: sqlUser.regionID,
+      regionID: sqlUser.regionID ?? 0,
+      groupID: sqlUser.groupID ?? 0,
+      arsIds,
     })
 
     const token = await this.generateAccessToken(user)
@@ -71,11 +78,18 @@ export class AuthService {
       )
     }
 
+    const arsIds =
+      await this.sqlServerAuthService.findUserArsIds(
+        Number(sqlUser.id),
+      )
+
     const user = await this.findOrCreateMongoUser({
       sqlServerUserId: String(sqlUser.id),
       username: sqlUser.username,
       name: sqlUser.name,
-      regionID: sqlUser.region,
+      regionID: sqlUser.region ?? 0,
+      groupID: sqlUser.groupID ?? 0,
+      arsIds,
     })
 
     const token = await this.generateAccessToken(user)
@@ -92,7 +106,11 @@ export class AuthService {
   }
 
   async me(userPayload: any) {
-    const user = await this.userModel.findById(userPayload.sub)
+    const userId =
+      userPayload.sub ??
+      userPayload.userId
+
+    const user = await this.userModel.findById(userId)
 
     if (!user || !user.isActive) {
       throw new UnauthorizedException('Invalid session')
@@ -116,30 +134,75 @@ export class AuthService {
     }
   }
 
+  private normalizeText(value?: string | null) {
+    return String(value ?? '').trim()
+  }
+
+  private isValidUsername(value?: string | null) {
+    const username = this.normalizeText(value)
+
+    return (
+      username.length > 1 &&
+      username !== 'L'
+    )
+  }
+
+  private isValidName(value?: string | null) {
+    const name = this.normalizeText(value)
+
+    return name.length > 1
+  }
+
   private async findOrCreateMongoUser(payload: {
     sqlServerUserId: string
     username: string
     name: string
     regionID?: number
+    groupID?: number
+    arsIds?: number[]
   }) {
+    const username =
+      this.normalizeText(payload.username)
+
+    const name =
+      this.normalizeText(payload.name)
+
     let user = await this.userModel.findOne({
       sqlServerUserId: payload.sqlServerUserId,
     })
 
     if (!user) {
+      if (!this.isValidUsername(username)) {
+        throw new UnauthorizedException(
+          'Invalid username returned from SQL Server',
+        )
+      }
+
       user = await this.userModel.create({
         sqlServerUserId: payload.sqlServerUserId,
-        username: payload.username,
-        name: payload.name,
+        username,
+        name: this.isValidName(name)
+          ? name
+          : username,
         role: 'encoder',
         isActive: true,
-        regionID: payload.regionID,
+        regionID: payload.regionID ?? 0,
+        groupID: payload.groupID ?? 0,
+        arsIds: payload.arsIds ?? [],
         lastLoginAt: new Date(),
       })
     } else {
-      user.username = payload.username
-      user.name = payload.name
-      user.regionID = payload.regionID
+      if (this.isValidUsername(username)) {
+        user.username = username
+      }
+
+      if (this.isValidName(name)) {
+        user.name = name
+      }
+
+      user.regionID = payload.regionID ?? 0
+      user.groupID = payload.groupID ?? 0
+      user.arsIds = payload.arsIds ?? []
       user.lastLoginAt = new Date()
 
       await user.save()
@@ -153,7 +216,6 @@ export class AuthService {
   }
 
   private async generateAccessToken(user: UserDocument) {
-    console.log("GENERATING TOKEN REGION:", user.regionID)
     return this.jwtService.signAsync(
       {
         sub: user.id,
@@ -161,7 +223,9 @@ export class AuthService {
         username: user.username,
         name: user.name,
         role: user.role,
-        regionID: user.regionID,
+        regionID: user.regionID ?? 0,
+        groupID: user.groupID ?? 0,
+        arsIds: user.arsIds ?? [],
         permissions: [],
       },
       {
@@ -172,21 +236,6 @@ export class AuthService {
       },
     )
   }
-
-  // private getCookieOptions() {
-  //   const isProduction =
-  //     this.config.get<string>('NODE_ENV') === 'production'
-
-  //   return {
-  //     httpOnly: true,
-  //     secure: isProduction,
-  //     sameSite: isProduction ? ('none' as const) : ('lax' as const),
-  //     domain: isProduction
-  //       ? this.config.get<string>('COOKIE_DOMAIN') || undefined
-  //       : undefined,
-  //     path: '/',
-  //   }
-  // }
 
   private getCookieOptions() {
     const isProduction =
@@ -200,8 +249,6 @@ export class AuthService {
         ? this.config.get<string>('COOKIE_DOMAIN') || undefined
         : undefined,
       path: '/',
-
-      // 7 days
       maxAge: 7 * 24 * 60 * 60 * 1000,
     }
   }
@@ -228,7 +275,9 @@ export class AuthService {
       username: user.username,
       name: user.name,
       role: user.role,
-      regionID: user.regionID,
+      regionID: user.regionID ?? 0,
+      groupID: user.groupID ?? 0,
+      arsIds: user.arsIds ?? [],
       isActive: user.isActive,
     }
   }

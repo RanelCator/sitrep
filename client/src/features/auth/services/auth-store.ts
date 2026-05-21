@@ -1,5 +1,3 @@
-// src/features/auth/services/auth-store.ts
-
 import { getCurrentUserRequest } from "@/features/auth/services/auth.service"
 import type { AuthUser } from "@/features/auth/types/auth.types"
 
@@ -18,6 +16,20 @@ class AuthStore {
     this.user = null
     this.isAuthenticated = false
     this.isInitialized = true
+  }
+
+  hasArsAccess(arsId: number) {
+    return this.user?.arsIds?.includes(arsId) ?? false
+  }
+
+  hasAnyArsAccess(arsIds: number[]) {
+    return arsIds.some((arsId) =>
+      this.user?.arsIds?.includes(arsId),
+    )
+  }
+
+  hasGroup(groupID: number) {
+    return this.user?.groupID === groupID
   }
 
   async initialize() {

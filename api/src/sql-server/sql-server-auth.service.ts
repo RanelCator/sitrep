@@ -11,7 +11,8 @@ export interface SqlServerUser {
   username: string
   name: string
   isActive: boolean
-  regionID?: number
+  regionID: number
+  groupID: number
 }
 
 export interface SqlServerPalaroPlayer {
@@ -30,6 +31,7 @@ export interface SqlServerArsUser {
   username: string
   name: string
   region: number
+  groupID: number
 }
 
 @Injectable()
@@ -43,77 +45,44 @@ export class SqlServerAuthService implements OnModuleDestroy {
 
   constructor(private readonly config: ConfigService) {}
 
-private getConnectionConfig(
-  key: SqlServerConnectionKey,
-): sql.config {
-  const prefix = `SQLSERVER_${key}`
+  private getConnectionConfig(
+    key: SqlServerConnectionKey,
+  ): sql.config {
+    const prefix = `SQLSERVER_${key}`
 
-  const useSqlAuth =
-    this.config.get<string>(
-      `${prefix}_LOCAL`,
-    ) === 'TRUE'
+    const useSqlAuth =
+      this.config.get<string>(`${prefix}_LOCAL`) === 'TRUE'
 
-  if (useSqlAuth) {
+    if (useSqlAuth) {
+      return {
+        server: this.config.getOrThrow<string>(`${prefix}_HOST`),
+        database: this.config.getOrThrow<string>(`${prefix}_DB`),
+        user: this.config.getOrThrow<string>(`${prefix}_USER`),
+        password: this.config.getOrThrow<string>(`${prefix}_PASS`),
+        options: {
+          encrypt: false,
+          trustServerCertificate: true,
+        },
+      }
+    }
+
     return {
-      server: this.config.getOrThrow<string>(
-        `${prefix}_HOST`,
-      ),
-
-      database: this.config.getOrThrow<string>(
-        `${prefix}_DB`,
-      ),
-
-      user: this.config.getOrThrow<string>(
-        `${prefix}_USER`,
-      ),
-
-      password: this.config.getOrThrow<string>(
-        `${prefix}_PASS`,
-      ),
-
+      server: this.config.getOrThrow<string>(`${prefix}_HOST`),
+      database: this.config.getOrThrow<string>(`${prefix}_DB`),
       options: {
-        encrypt: false,
+        encrypt: true,
         trustServerCertificate: true,
+      },
+      authentication: {
+        type: 'ntlm',
+        options: {
+          domain: this.config.get<string>(`${prefix}_DOMAIN`) ?? '',
+          userName: this.config.getOrThrow<string>(`${prefix}_USER`),
+          password: this.config.getOrThrow<string>(`${prefix}_PASS`),
+        },
       },
     }
   }
-
-  return {
-    server: this.config.getOrThrow<string>(
-      `${prefix}_HOST`,
-    ),
-
-    database: this.config.getOrThrow<string>(
-      `${prefix}_DB`,
-    ),
-
-    options: {
-      encrypt: true,
-      trustServerCertificate: true,
-    },
-
-    authentication: {
-      type: 'ntlm',
-
-      options: {
-        domain:
-          this.config.get<string>(
-            `${prefix}_DOMAIN`,
-          ) ?? '',
-
-        userName:
-          this.config.getOrThrow<string>(
-            `${prefix}_USER`,
-          ),
-
-        password:
-          this.config.getOrThrow<string>(
-            `${prefix}_PASS`,
-          ),
-      },
-    },
-  }
-}
 
   private async getPool(
     key: SqlServerConnectionKey,
@@ -155,8 +124,9 @@ private getConnectionConfig(
             ISNULL(tbl_members.middlename + ' ', ''),
             ISNULL(tbl_members.lastname, '')
           ) AS name,
-           0 as regionID,
-          tbl_members.isactive AS isActive
+          0 AS regionID,
+          tbl_members.isactive AS isActive,
+          0 groupID
         FROM tbl_account_info
         LEFT JOIN tbl_members
           ON tbl_account_info.member_id = tbl_members.member_id
@@ -173,7 +143,8 @@ private getConnectionConfig(
       username: user.username,
       name: user.name,
       isActive: Boolean(user.isActive),
-      regionID: user.regionID,
+      regionID: Number(user.regionID ?? 0),
+      groupID: Number(user.groupID ?? 0),
     }
   }
 
@@ -223,39 +194,59 @@ private getConnectionConfig(
     }
   }
 
-  async findArsUserById(id: number): Promise<SqlServerArsUser | null> {
-  const pool = await this.getPool('PMIS')
+  async findArsUserById(
+    id: number,
+  ): Promise<SqlServerArsUser | null> {
+    const pool = await this.getPool('PMIS')
 
-  const result = await pool
-    .request()
-    .input('id', sql.Int, id)
-    .query(`
-      SELECT TOP 1
-        a.[UserId] AS id,
-        a.[Eid] AS eid,
-        a.[Username] AS username,
-        a.[FullName] AS name, 
-        a.[RegionId] AS region
-      FROM [pptf].[dbo].[TblUsers] a
-      JOIN [pptf].[dbo].[TblUsersArs] b
-        ON b.UserId = a.UserId
-      WHERE b.ArId IN (10, 11)
-        AND b.HasAccess = 1
-        AND a.[UserId] = @id
-    `)
+    const result = await pool
+      .request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT TOP 1
+          a.[UserId] AS id,
+          a.[Eid] AS eid,
+          a.[Username] AS username,
+          a.[FullName] AS name, 
+          a.[RegionId] AS region,
+          ISNULL(a.[GroupID], 0) AS groupID
+        FROM [pptf].[dbo].[TblUsers] a
+        JOIN [pptf].[dbo].[TblUsersArs] b
+          ON b.UserId = a.UserId
+        WHERE 
+          b.HasAccess = 1
+          AND a.[UserId] = @id
+      `)
 
-  const user = result.recordset[0]
+    const user = result.recordset[0]
 
-  if (!user) return null
+    if (!user) return null
 
-  return {
-    id: String(user.id),
-    eid: String(user.eid ?? ''),
-    username: user.username,
-    name: user.name,
-    region: user.region ?? 0,
+    return {
+      id: String(user.id),
+      eid: String(user.eid ?? ''),
+      username: user.username,
+      name: user.name,
+      region: Number(user.region ?? 0),
+      groupID: Number(user.groupID ?? 0),
+    }
   }
-}
+
+  async findUserArsIds(userId: number): Promise<number[]> {
+    const pool = await this.getPool('PMIS')
+
+    const result = await pool
+      .request()
+      .input('userId', sql.Int, userId)
+      .query(`
+        SELECT ArID
+        FROM [pptf].[dbo].[TblUsersArs]
+        WHERE UserId = @userId
+          AND HasAccess = 1
+      `)
+
+    return result.recordset.map((row) => Number(row.ArID))
+  }
 
   async onModuleDestroy() {
     for (const pool of this.pools.values()) {

@@ -8,6 +8,8 @@ export interface AuthUser {
   name: string
   role: string
   regionID?: number
+  groupID?: number
+  arsIds?: number[]
   permissions: string[]
 }
 

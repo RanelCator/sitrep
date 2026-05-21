@@ -1,11 +1,14 @@
 // src/features/auth/types/auth.types.ts
 
-export interface AuthUser {
+export type AuthUser = {
   userId: string
   sqlServerUserId: string
   username: string
   name: string
   role: string
+  regionID?: number
+  groupID?: number
+  arsIds?: number[]
   isActive: boolean
 }
 

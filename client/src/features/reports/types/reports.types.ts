@@ -32,5 +32,6 @@ export interface SingleGeneratedReportResponse {
 }
 
 export interface GenerateDailyReportPayload {
-  ReportDate: string
+  ReportDate: string,
+  ReportCutoff: string,
 }

@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-B6doAwFl.js";import{n as t,t as n}from"./index-DvLBKuJC.js";var r=e();function i(){let{isInitialized:e}=n();return e?(0,r.jsx)(`main`,{className:`min-h-screen bg-background p-6`,children:(0,r.jsx)(t,{})}):null}var a=i;export{a as component};

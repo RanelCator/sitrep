@@ -101,7 +101,7 @@ export function PatientConsultationReferralFormPage() {
 
         onPrint: (item) => {
           window.open(
-            `sitrep/patient-consultation-referral-form/${item._id}/print`,
+            `patient-consultation-referral-form/${item._id}/print`,
             "_blank",
           )
         },

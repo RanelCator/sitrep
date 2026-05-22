@@ -14,6 +14,8 @@ import { DashboardModule } from './features/dashboard/dashboard.module';
 import { ReportsModule } from './features/reports/reports.module';
 import { OtherDelegationModule } from './features/other-delegation/other-delegation.module';
 import { PatientConsultationReferralFormModule } from './features/patient-consultation-referral-form/patient-consultation-referral-form.module';
+import { DepedIncidentReportModule } from './features/deped-incident-report/deped-incident-report.module';
+import { WeatherUpdatesModule } from './features/weather-updates/weather-updates.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { PatientConsultationReferralFormModule } from './features/patient-consul
     ReportsModule,
     OtherDelegationModule,
     PatientConsultationReferralFormModule,
+    DepedIncidentReportModule,
+    WeatherUpdatesModule,
   ],
   providers: [SqlServerAuthService],
 })

@@ -40,6 +40,11 @@ import {
 } from '@/features/reported-incidents/schemas/reported-incident.schema'
 
 import {
+  DepedIncidentReport,
+  DepedIncidentReportDocument,
+} from '@/features/deped-incident-report/schema/deped-incident-report.schema'
+
+import {
   OtherInformation,
   OtherInformationDocument,
 } from '@/features/other-information/schemas/other-information.schema'
@@ -71,6 +76,9 @@ export class ReportsService {
 
     @InjectModel(ReportedIncident.name)
     private readonly reportedIncidentModel: Model<ReportedIncidentDocument>,
+
+    @InjectModel(DepedIncidentReport.name)
+    private readonly depedIncidentReportModel: Model<DepedIncidentReportDocument>,
 
     @InjectModel(OtherInformation.name)
     private readonly otherInformationModel: Model<OtherInformationDocument>,
@@ -252,6 +260,7 @@ export class ReportsService {
       highlights,
       currentSituations,
       reportedIncidents,
+      depedIncidentReports,
       otherInformation,
       otherDelegations,
     ] = await Promise.all([
@@ -312,6 +321,19 @@ export class ReportsService {
           'AddedBy',
           'name username role',
         )
+        .lean(),
+
+      this.depedIncidentReportModel
+        .find({
+          createdAt: {
+            $gte: cutoffStart,
+            $lte: cutoffEnd,
+          },
+        })
+        .sort({
+          date: 1,
+          time: 1,
+        })
         .lean(),
 
       this.otherInformationModel
@@ -523,21 +545,20 @@ export class ReportsService {
     const data = {
       report: {
         title: 'Daily Situation Report',
-        reportDate: new Date(
-  entryDate,
-).toLocaleDateString(
-  'en-US',
-  {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  },
-) +
-` ${
-  reportCutoff === '8am'
-    ? '8AM'
-    : '5PM'
-}`,
+        reportDate:
+          new Date(entryDate).toLocaleDateString(
+            'en-US',
+            {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            },
+          ) +
+          ` ${
+            reportCutoff === '8am'
+              ? '8AM'
+              : '5PM'
+          }`,
         entryDate,
         reportCutoff,
         cutoffLabel:
@@ -650,6 +671,8 @@ export class ReportsService {
         currentSituations,
 
       reportedIncidents,
+
+      depedIncidentReports,
 
       otherInformation,
     }

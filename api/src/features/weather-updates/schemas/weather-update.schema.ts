@@ -1,14 +1,18 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { HydratedDocument } from 'mongoose'
 
-export type WeatherUpdateDocument = HydratedDocument<WeatherUpdate>
+export type WeatherUpdateDocument =
+  HydratedDocument<WeatherUpdate>
 
-export enum WeatherWarningLevel {
-  LOW = 'low',
-  MODERATE = 'moderate',
-  HIGH = 'high',
-  SEVERE = 'severe',
-}
+export const WEATHER_WARNING_LEVELS = {
+  LOW: 'low',
+  MODERATE: 'moderate',
+  HIGH: 'high',
+  SEVERE: 'severe',
+} as const
+
+export type WeatherWarningLevel =
+  (typeof WEATHER_WARNING_LEVELS)[keyof typeof WEATHER_WARNING_LEVELS]
 
 @Schema({ timestamps: true })
 export class WeatherUpdate {
@@ -23,12 +27,12 @@ export class WeatherUpdate {
 
   @Prop({
     required: true,
-    enum: WeatherWarningLevel,
-    default: WeatherWarningLevel.LOW,
+    enum: Object.values(WEATHER_WARNING_LEVELS),
+    default: WEATHER_WARNING_LEVELS.LOW,
   })
   warningLevel!: WeatherWarningLevel
 
-  @Prop({ trim: true })
+  @Prop({ trim: true, default: '' })
   description?: string
 }
 

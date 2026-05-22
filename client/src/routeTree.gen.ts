@@ -15,12 +15,14 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as publicScanRouteImport } from './routes/(public)/scan'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
+import { Route as AuthenticatedWeatherUpdatesIndexRouteImport } from './routes/_authenticated/weather-updates/index'
 import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports/index'
 import { Route as AuthenticatedReportedIncidentsIndexRouteImport } from './routes/_authenticated/reported-incidents/index'
 import { Route as AuthenticatedPatientConsultationReferralFormIndexRouteImport } from './routes/_authenticated/patient-consultation-referral-form/index'
 import { Route as AuthenticatedOtherInformationIndexRouteImport } from './routes/_authenticated/other-information/index'
 import { Route as AuthenticatedOtherDelegationIndexRouteImport } from './routes/_authenticated/other-delegation/index'
 import { Route as AuthenticatedHighlightsIndexRouteImport } from './routes/_authenticated/highlights/index'
+import { Route as AuthenticatedDepedIncidentReportIndexRouteImport } from './routes/_authenticated/deped-incident-report/index'
 import { Route as AuthenticatedCurrentSituationIndexRouteImport } from './routes/_authenticated/current-situation/index'
 import { Route as AuthenticatedBilletingQuartersIndexRouteImport } from './routes/_authenticated/billeting-quarters/index'
 import { Route as AuthenticatedReportsDateRouteImport } from './routes/_authenticated/reports/$date'
@@ -56,6 +58,12 @@ const authLoginRoute = authLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWeatherUpdatesIndexRoute =
+  AuthenticatedWeatherUpdatesIndexRouteImport.update({
+    id: '/weather-updates/',
+    path: '/weather-updates/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedReportsIndexRoute =
   AuthenticatedReportsIndexRouteImport.update({
     id: '/reports/',
@@ -90,6 +98,12 @@ const AuthenticatedHighlightsIndexRoute =
   AuthenticatedHighlightsIndexRouteImport.update({
     id: '/highlights/',
     path: '/highlights/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDepedIncidentReportIndexRoute =
+  AuthenticatedDepedIncidentReportIndexRouteImport.update({
+    id: '/deped-incident-report/',
+    path: '/deped-incident-report/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedCurrentSituationIndexRoute =
@@ -132,12 +146,14 @@ export interface FileRoutesByFullPath {
   '/reports/$date': typeof AuthenticatedReportsDateRoute
   '/billeting-quarters/': typeof AuthenticatedBilletingQuartersIndexRoute
   '/current-situation/': typeof AuthenticatedCurrentSituationIndexRoute
+  '/deped-incident-report/': typeof AuthenticatedDepedIncidentReportIndexRoute
   '/highlights/': typeof AuthenticatedHighlightsIndexRoute
   '/other-delegation/': typeof AuthenticatedOtherDelegationIndexRoute
   '/other-information/': typeof AuthenticatedOtherInformationIndexRoute
   '/patient-consultation-referral-form/': typeof AuthenticatedPatientConsultationReferralFormIndexRoute
   '/reported-incidents/': typeof AuthenticatedReportedIncidentsIndexRoute
   '/reports/': typeof AuthenticatedReportsIndexRoute
+  '/weather-updates/': typeof AuthenticatedWeatherUpdatesIndexRoute
   '/patient-consultation-referral-form/$id/print': typeof AuthenticatedPatientConsultationReferralFormIdPrintRoute
   '/reports/$id/view': typeof AuthenticatedReportsIdViewRoute
 }
@@ -150,12 +166,14 @@ export interface FileRoutesByTo {
   '/reports/$date': typeof AuthenticatedReportsDateRoute
   '/billeting-quarters': typeof AuthenticatedBilletingQuartersIndexRoute
   '/current-situation': typeof AuthenticatedCurrentSituationIndexRoute
+  '/deped-incident-report': typeof AuthenticatedDepedIncidentReportIndexRoute
   '/highlights': typeof AuthenticatedHighlightsIndexRoute
   '/other-delegation': typeof AuthenticatedOtherDelegationIndexRoute
   '/other-information': typeof AuthenticatedOtherInformationIndexRoute
   '/patient-consultation-referral-form': typeof AuthenticatedPatientConsultationReferralFormIndexRoute
   '/reported-incidents': typeof AuthenticatedReportedIncidentsIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
+  '/weather-updates': typeof AuthenticatedWeatherUpdatesIndexRoute
   '/patient-consultation-referral-form/$id/print': typeof AuthenticatedPatientConsultationReferralFormIdPrintRoute
   '/reports/$id/view': typeof AuthenticatedReportsIdViewRoute
 }
@@ -170,12 +188,14 @@ export interface FileRoutesById {
   '/_authenticated/reports/$date': typeof AuthenticatedReportsDateRoute
   '/_authenticated/billeting-quarters/': typeof AuthenticatedBilletingQuartersIndexRoute
   '/_authenticated/current-situation/': typeof AuthenticatedCurrentSituationIndexRoute
+  '/_authenticated/deped-incident-report/': typeof AuthenticatedDepedIncidentReportIndexRoute
   '/_authenticated/highlights/': typeof AuthenticatedHighlightsIndexRoute
   '/_authenticated/other-delegation/': typeof AuthenticatedOtherDelegationIndexRoute
   '/_authenticated/other-information/': typeof AuthenticatedOtherInformationIndexRoute
   '/_authenticated/patient-consultation-referral-form/': typeof AuthenticatedPatientConsultationReferralFormIndexRoute
   '/_authenticated/reported-incidents/': typeof AuthenticatedReportedIncidentsIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
+  '/_authenticated/weather-updates/': typeof AuthenticatedWeatherUpdatesIndexRoute
   '/_authenticated/patient-consultation-referral-form/$id/print': typeof AuthenticatedPatientConsultationReferralFormIdPrintRoute
   '/_authenticated/reports/$id/view': typeof AuthenticatedReportsIdViewRoute
 }
@@ -190,12 +210,14 @@ export interface FileRouteTypes {
     | '/reports/$date'
     | '/billeting-quarters/'
     | '/current-situation/'
+    | '/deped-incident-report/'
     | '/highlights/'
     | '/other-delegation/'
     | '/other-information/'
     | '/patient-consultation-referral-form/'
     | '/reported-incidents/'
     | '/reports/'
+    | '/weather-updates/'
     | '/patient-consultation-referral-form/$id/print'
     | '/reports/$id/view'
   fileRoutesByTo: FileRoutesByTo
@@ -208,12 +230,14 @@ export interface FileRouteTypes {
     | '/reports/$date'
     | '/billeting-quarters'
     | '/current-situation'
+    | '/deped-incident-report'
     | '/highlights'
     | '/other-delegation'
     | '/other-information'
     | '/patient-consultation-referral-form'
     | '/reported-incidents'
     | '/reports'
+    | '/weather-updates'
     | '/patient-consultation-referral-form/$id/print'
     | '/reports/$id/view'
   id:
@@ -227,12 +251,14 @@ export interface FileRouteTypes {
     | '/_authenticated/reports/$date'
     | '/_authenticated/billeting-quarters/'
     | '/_authenticated/current-situation/'
+    | '/_authenticated/deped-incident-report/'
     | '/_authenticated/highlights/'
     | '/_authenticated/other-delegation/'
     | '/_authenticated/other-information/'
     | '/_authenticated/patient-consultation-referral-form/'
     | '/_authenticated/reported-incidents/'
     | '/_authenticated/reports/'
+    | '/_authenticated/weather-updates/'
     | '/_authenticated/patient-consultation-referral-form/$id/print'
     | '/_authenticated/reports/$id/view'
   fileRoutesById: FileRoutesById
@@ -289,6 +315,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/weather-updates/': {
+      id: '/_authenticated/weather-updates/'
+      path: '/weather-updates'
+      fullPath: '/weather-updates/'
+      preLoaderRoute: typeof AuthenticatedWeatherUpdatesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/reports/': {
       id: '/_authenticated/reports/'
       path: '/reports'
@@ -329,6 +362,13 @@ declare module '@tanstack/react-router' {
       path: '/highlights'
       fullPath: '/highlights/'
       preLoaderRoute: typeof AuthenticatedHighlightsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/deped-incident-report/': {
+      id: '/_authenticated/deped-incident-report/'
+      path: '/deped-incident-report'
+      fullPath: '/deped-incident-report/'
+      preLoaderRoute: typeof AuthenticatedDepedIncidentReportIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/current-situation/': {
@@ -374,12 +414,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReportsDateRoute: typeof AuthenticatedReportsDateRoute
   AuthenticatedBilletingQuartersIndexRoute: typeof AuthenticatedBilletingQuartersIndexRoute
   AuthenticatedCurrentSituationIndexRoute: typeof AuthenticatedCurrentSituationIndexRoute
+  AuthenticatedDepedIncidentReportIndexRoute: typeof AuthenticatedDepedIncidentReportIndexRoute
   AuthenticatedHighlightsIndexRoute: typeof AuthenticatedHighlightsIndexRoute
   AuthenticatedOtherDelegationIndexRoute: typeof AuthenticatedOtherDelegationIndexRoute
   AuthenticatedOtherInformationIndexRoute: typeof AuthenticatedOtherInformationIndexRoute
   AuthenticatedPatientConsultationReferralFormIndexRoute: typeof AuthenticatedPatientConsultationReferralFormIndexRoute
   AuthenticatedReportedIncidentsIndexRoute: typeof AuthenticatedReportedIncidentsIndexRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
+  AuthenticatedWeatherUpdatesIndexRoute: typeof AuthenticatedWeatherUpdatesIndexRoute
   AuthenticatedPatientConsultationReferralFormIdPrintRoute: typeof AuthenticatedPatientConsultationReferralFormIdPrintRoute
   AuthenticatedReportsIdViewRoute: typeof AuthenticatedReportsIdViewRoute
 }
@@ -391,6 +433,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedBilletingQuartersIndexRoute,
   AuthenticatedCurrentSituationIndexRoute:
     AuthenticatedCurrentSituationIndexRoute,
+  AuthenticatedDepedIncidentReportIndexRoute:
+    AuthenticatedDepedIncidentReportIndexRoute,
   AuthenticatedHighlightsIndexRoute: AuthenticatedHighlightsIndexRoute,
   AuthenticatedOtherDelegationIndexRoute:
     AuthenticatedOtherDelegationIndexRoute,
@@ -401,6 +445,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReportedIncidentsIndexRoute:
     AuthenticatedReportedIncidentsIndexRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
+  AuthenticatedWeatherUpdatesIndexRoute: AuthenticatedWeatherUpdatesIndexRoute,
   AuthenticatedPatientConsultationReferralFormIdPrintRoute:
     AuthenticatedPatientConsultationReferralFormIdPrintRoute,
   AuthenticatedReportsIdViewRoute: AuthenticatedReportsIdViewRoute,

@@ -747,7 +747,125 @@ export function DailySitRepPrintPage() {
             </section>
 
             <section className="print-section w-full">
-              <SectionTitle title="IV. Other Information" color="#444444" />
+  <SectionTitle
+    title="IV. DepED Reported Incidents"
+    color="#B45309"
+  />
+
+  <table className="mt-3 w-full border-collapse text-[9px]">
+    <thead>
+      <tr className="bg-slate-100">
+        <th className="border border-black p-1">
+          Reporter
+        </th>
+
+        <th className="border border-black p-1">
+          Designation
+        </th>
+
+        <th className="border border-black p-1">
+          Agency / Region
+        </th>
+
+        <th className="border border-black p-1">
+          Type of Incident
+        </th>
+
+        <th className="border border-black p-1">
+          Date & Time
+        </th>
+
+        <th className="border border-black p-1">
+          Location / Area
+        </th>
+
+        <th className="border border-black p-1">
+          Brief Description
+        </th>
+
+        <th className="border border-black p-1">
+          Immediate Actions Taken
+        </th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {data.depedIncidentReports?.length ? (
+        data.depedIncidentReports.map(
+          (item: any) => (
+            <tr key={item._id}>
+              <td className="border border-black p-1 align-top">
+                <div className="font-semibold">
+                  {item.reporterName}
+                </div>
+
+                <div className="text-[8px] text-slate-600">
+                  {item.mobileNumber}
+                </div>
+              </td>
+
+              <td className="border border-black p-1 align-top">
+                {item.designationRole}
+              </td>
+
+              <td className="border border-black p-1 align-top">
+                {item.agencyOfficeRegion}
+              </td>
+
+              <td className="border border-black p-1 align-top">
+                {item.incidentType ===
+                  "Others" &&
+                item.incidentTypeOther
+                  ? item.incidentTypeOther
+                  : item.incidentType}
+              </td>
+
+              <td className="border border-black p-1 align-top">
+                <div>
+                  {formatDate(item.date)}
+                </div>
+
+                <div className="text-[8px] text-slate-600">
+                  {item.time}
+                </div>
+              </td>
+
+              <td className="border border-black p-1 align-top">
+                <div>
+                  {item.location ===
+                    "Others" &&
+                  item.locationOther
+                    ? item.locationOther
+                    : item.location}
+                </div>
+
+                <div className="text-[8px] text-slate-600">
+                  {item.area === "Others" &&
+                  item.areaOther
+                    ? item.areaOther
+                    : item.area}
+                </div>
+              </td>
+
+              <td className="border border-black p-1 align-top">
+                {item.briefDescription}
+              </td>
+
+              <td className="border border-black p-1 align-top">
+                {item.immediateActionsTaken}
+              </td>
+            </tr>
+          ),
+        )
+      ) : (
+        <EmptyRows columns={8} rows={4} />
+      )}
+    </tbody>
+  </table>
+</section>
+
+            <section className="print-section w-full">
+              <SectionTitle title="V. Other Information" color="#444444" />
 
               <div className="mt-3 rounded-md border p-3">
                 <ul className="list-disc space-y-2 pl-5 text-[10px] leading-tight">

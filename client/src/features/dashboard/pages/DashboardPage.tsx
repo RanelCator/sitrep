@@ -7,12 +7,14 @@ import {
   Activity,
   AlertTriangle,
   BedDouble,
-  Building2,
   ClipboardList,
+  CloudSun,
   FileText,
+  HeartPulse,
   Info,
   MapPin,
   Megaphone,
+  ShieldAlert,
   Trophy,
   Users,
 } from "lucide-react"
@@ -26,7 +28,6 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card"
 
-import { Progress } from "@/shared/components/ui/progress"
 
 import { FormDialog } from "@/shared/components/dialog/FormDialog"
 
@@ -36,7 +37,6 @@ import {
   showAlertWithDialogHidden,
 } from "@/shared/lib/alert"
 
-import { Button } from "@/shared/components/ui/button"
 
 import { cn } from "@/shared/lib/utils"
 
@@ -124,6 +124,37 @@ const modules = [
     href: "/patient-consultation-referral-form",
   },
 
+  authStore.hasArsAccess(
+    ARS_PERMISSIONS.DepED_INCIDENT_REPORT,
+  ) && {
+    title: "DepED Incident Reports",
+    description:
+      "Manage submitted incident reports",
+    icon: ShieldAlert,
+    href: "/deped-incident-reports",
+  },
+
+ authStore.hasArsAccess(
+    ARS_PERMISSIONS.WEATHER_UPDATES,
+  ) && {
+    title: "Weather Updates",
+    description:
+      "Manage weather updates and warnings",
+    icon: CloudSun,
+    href: "/weather-updates",
+  },
+
+   authStore.hasArsAccess(
+    ARS_PERMISSIONS.GENERATE_REPORTS,
+  ) && {
+    title: "Generate Reports",
+    description:
+      "Create and manage various reports",
+    icon: FileText,
+    href: "/reports",
+  },
+  //GENERATE_REPORTS
+
 ].filter(Boolean)
 
 export function DashboardPage() {
@@ -145,55 +176,55 @@ export function DashboardPage() {
   const dashboardData =
     dashboardQuery.data?.data
 
-  const venueStatus = [
-    {
-      label: "Infrastructure",
+  // const venueStatus = [
+  //   {
+  //     label: "Infrastructure",
 
-      value:
-        dashboardData?.venueStatus
-          ?.infrastructure ?? 0,
+  //     value:
+  //       dashboardData?.venueStatus
+  //         ?.infrastructure ?? 0,
 
-      description:
-        misc?.infrastructure_description ??
-        "",
+  //     description:
+  //       misc?.infrastructure_description ??
+  //       "",
 
-      icon: Building2,
+  //     icon: Building2,
 
-      tone: "text-emerald-700",
-    },
+  //     tone: "text-emerald-700",
+  //   },
 
-    {
-      label: "Peripherals",
+  //   {
+  //     label: "Peripherals",
 
-      value:
-        dashboardData?.venueStatus
-          ?.peripherals ?? 0,
+  //     value:
+  //       dashboardData?.venueStatus
+  //         ?.peripherals ?? 0,
 
-      description:
-        misc?.peripherals_description ??
-        "",
+  //     description:
+  //       misc?.peripherals_description ??
+  //       "",
 
-      icon: Megaphone,
+  //     icon: Megaphone,
 
-      tone: "text-orange-600",
-    },
+  //     tone: "text-orange-600",
+  //   },
 
-    {
-      label: "Sports Equipment",
+  //   {
+  //     label: "Sports Equipment",
 
-      value:
-        dashboardData?.venueStatus
-          ?.sports_equipment ?? 0,
+  //     value:
+  //       dashboardData?.venueStatus
+  //         ?.sports_equipment ?? 0,
 
-      description:
-        misc?.sports_equipment_description ??
-        "",
+  //     description:
+  //       misc?.sports_equipment_description ??
+  //       "",
 
-      icon: Trophy,
+  //     icon: Trophy,
 
-      tone: "text-blue-700",
-    },
-  ]
+  //     tone: "text-blue-700",
+  //   },
+  // ]
 
   const summaryCards = [
     {
@@ -383,7 +414,7 @@ export function DashboardPage() {
           </div>
         </header>
 
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 hidden">
           {summaryCards.map((item) => {
             const Icon =
               item.icon
@@ -428,7 +459,7 @@ export function DashboardPage() {
           })}
         </section>
 
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
           <Card className="rounded-2xl border-0 shadow-sm lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-900">
@@ -465,248 +496,80 @@ export function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between gap-2 text-emerald-800">
-                <div className="flex items-center gap-2">
-                  <MapPin className="size-5" />
-                  Status of Playing
-                  Venue
-                </div>
+<Card className="overflow-hidden rounded-2xl border-0 shadow-sm lg:col-span-3">
+  <CardHeader>
+    <CardTitle className="flex items-center gap-2 text-blue-900">
+      <HeartPulse className="size-5" />
+      Health Dashboard
+    </CardTitle>
+  </CardHeader>
 
-                {authStore.hasArsAccess(
-  ARS_PERMISSIONS.PLAYING_VENUES,
-) && (
-  <Button
-    size="sm"
-    onClick={() =>
-      setOpenPlayingVenueForm(
-        true,
-      )
-    }
-  >
-    Update
-  </Button>
-)}
-              </CardTitle>
-            </CardHeader>
-
-            <CardContent className="space-y-5">
-              {venueStatus.map(
-                (item) => {
-                  const Icon =
-                    item.icon
-
-                  return (
-                    <div
-                      key={
-                        item.label
-                      }
-                      className="space-y-2"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                          <Icon
-                            className={cn(
-                              "size-5",
-                              item.tone,
-                            )}
-                          />
-
-                          <span className="text-sm font-semibold">
-                            {
-                              item.label
-                            }
-                          </span>
-                        </div>
-
-                        <span
-                          className={cn(
-                            "text-sm font-bold",
-                            item.tone,
-                          )}
-                        >
-                          {
-                            item.value
-                          }
-                          %
-                        </span>
-                      </div>
-
-                      <Progress
-                        value={
-                          item.value
-                        }
-                      />
-
-                      {item.description && (
-                        <p className="text-xs leading-5 text-slate-500">
-                          {
-                            item.description
-                          }
-                        </p>
-                      )}
-                    </div>
-                  )
-                },
-              )}
-
-              <div className="grid grid-cols-2 gap-3 pt-3">
-                <div className="rounded-xl bg-slate-100 p-4 text-center">
-                  <p className="text-xs font-medium text-slate-500">
-                    Assigned
-                    Billeting
-                  </p>
-
-                  <p className="text-2xl font-bold">
-                    {misc?.billeting_quarters_assigned ??
-                      0}
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-slate-100 p-4 text-center">
-                  <p className="text-xs font-medium text-slate-500">
-                    Identified
-                    Billeting
-                  </p>
-
-                  <p className="text-2xl font-bold">
-                    {misc?.identified_billeting_quarters ??
-                      0}
-                  </p>
-                </div>
-              </div>
-
-              {misc?.identified_billeting_quarters_text && (
-                <div className="rounded-xl border bg-slate-50 p-4">
-                  <p className="text-sm font-semibold text-slate-700">
-                    Billeting Details
-                  </p>
-
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    {
-                      misc.identified_billeting_quarters_text
-                    }
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+  <CardContent className="p-0">
+    <iframe
+      src="https://datastudio.google.com/embed/reporting/25203a54-f63e-463d-b2d9-4369c3480df1/page/p_dondkyrg3d"
+      className="h-[620px] w-full border-0"
+      allowFullScreen
+    />
+  </CardContent>
+</Card>
         </section>
 
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <Card className="rounded-2xl border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-blue-900">
-                Billeting
-                Quarters
-              </CardTitle>
-            </CardHeader>
+<section className="grid grid-cols-1 gap-6">
+  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+    {modules
+      .filter(Boolean)
+      .map((item: any) => {
+        const Icon = item.icon
 
-            <CardContent className="space-y-4">
-              <div className="rounded-2xl bg-emerald-50 p-5 text-center">
-                <p className="text-sm font-semibold text-emerald-700">
-                  Overall Average
-                  Preparedness
-                  Rating
+        return (
+          <Card
+            key={item.title}
+            onClick={() => {
+              navigate({
+                to: item.href,
+              })
+            }}
+            className="group cursor-pointer rounded-2xl border-0 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+          >
+            <CardContent className="flex h-full flex-col gap-4 p-5">
+              <div className="flex size-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-800 transition group-hover:bg-blue-900 group-hover:text-white">
+                <Icon className="size-6" />
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">
+                  {item.title}
+                </h3>
+
+                <p className="mt-1 text-sm leading-6 text-slate-500">
+                  {item.description}
                 </p>
-
-                <h2 className="mt-2 text-5xl font-black text-emerald-700">
-                  {dashboardData?.preparednessAverage ??
-                    0}
-                  %
-                </h2>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-slate-100 p-4 text-center">
-                  <p className="text-xs font-medium text-slate-500">
-                    Assigned
-                  </p>
-
-                  <p className="text-2xl font-bold">
-                    {dashboardData?.billetingQuartersAssigned ??
-                      0}
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-slate-100 p-4 text-center">
-                  <p className="text-xs font-medium text-slate-500">
-                    Identified
-                  </p>
-
-                  <p className="text-2xl font-bold">
-                    {dashboardData?.totalIdentifiedBilletingQuarters ??
-                      0}
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-3 pt-2">
-                <Button
-                  type="button"
-                  className="w-full"
-                  onClick={() => {
-                    navigate({
-                      to: "/reports",
-                    })
-                  }}
-                >
-                  Generate Daily
-                  SitRep
-                </Button>
               </div>
             </CardContent>
           </Card>
+        )
+      })}
+  </div>
+</section>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-2 lg:grid-cols-3">
-  {modules
-    .filter(Boolean)
-    .map((item: any) => {
-      const Icon =
-        item.icon
+<section>
+  <Card className="overflow-hidden rounded-2xl border-0 shadow-sm">
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2 text-blue-900">
+        <CloudSun className="size-5" />
+        Delegation Monitoring Dashboard
+      </CardTitle>
+    </CardHeader>
 
-      return (
-        <Card
-          key={item.title}
-          onClick={() => {
-            if (
-              item.title ===
-              "Playing Venues"
-            ) {
-              setOpenPlayingVenueForm(
-                true,
-              )
-
-              return
-            }
-
-            navigate({
-              to: item.href,
-            })
-          }}
-          className="group cursor-pointer rounded-2xl border-0 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-        >
-          <CardContent className="flex h-full flex-col gap-4 p-5">
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-800 group-hover:bg-blue-900 group-hover:text-white">
-              <Icon className="size-6" />
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-slate-900">
-                {item.title}
-              </h3>
-
-              <p className="mt-1 text-sm leading-6 text-slate-500">
-                {item.description}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )
-    })}
-</div>
-        </section>
+    <CardContent className="p-0">
+      <iframe
+        src="https://datastudio.google.com/embed/reporting/99071ea5-0e18-4d2e-ad12-859d8627ef9f/page/3ecyF"
+        className="h-[850px] w-full border-0"
+        allowFullScreen
+      />
+    </CardContent>
+  </Card>
+</section>
       </div>
 
       <FormDialog

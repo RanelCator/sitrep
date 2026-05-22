@@ -45,6 +45,10 @@ import {
   OtherDelegationSchema,
 } from '@/features/other-delegation/schemas/other-delegation.schema'
 
+import {
+  DepedIncidentReport,
+  DepedIncidentReportSchema,
+} from '@/features/deped-incident-report/schema/deped-incident-report.schema'
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -87,6 +91,10 @@ import {
         name: OtherDelegation.name,
         schema: OtherDelegationSchema,
       },
+      {
+  name: DepedIncidentReport.name,
+  schema: DepedIncidentReportSchema,
+},
     ]),
   ],
 

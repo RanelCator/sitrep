@@ -13,6 +13,7 @@ import type {
   CreatePatientConsultationReferralFormPayload,
   PatientConsultationReferralFormtype,
 } from "@/features/patient-consultation-referral-form/types/patient-consultation-referral-form.types"
+import { authStore } from "@/features/auth/services/auth-store"
 
 interface PatientConsultationReferralFormProps {
   initialData?: PatientConsultationReferralFormtype | null
@@ -96,6 +97,8 @@ export function PatientConsultationReferralForm({
 
   const isFieldReadOnly = (name: string) =>
     readOnly || readOnlyFields.includes(name)
+
+const regionID = authStore.user?.regionID
 
   return (
     <form
@@ -200,7 +203,7 @@ export function PatientConsultationReferralForm({
                   If patient is an athlete/delegation,
                 </div>
 
-                <div>
+<div>
   <div>
     Region{" "}
     <span className="text-xs italic">
@@ -222,14 +225,31 @@ export function PatientConsultationReferralForm({
           Select Region
         </option>
 
-        {REGIONS.map((region) => (
-          <option
-            key={region.id}
-            value={region.regionName}
-          >
-            {region.regionName}
-          </option>
-        ))}
+        {REGIONS
+          .filter((region) => {
+            // show all if undefined or 0
+            console.log("User regionID:", regionID)
+            if (
+              !regionID ||
+              regionID === 0
+            ) {
+              return true
+            }
+
+            // show only matching region
+            return (
+              region.id ===
+              Number(regionID)
+            )
+          })
+          .map((region) => (
+            <option
+              key={region.id}
+              value={region.regionName}
+            >
+              {region.regionName}
+            </option>
+          ))}
       </select>
     )}
   </form.Field>

@@ -7,6 +7,7 @@ import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { Textarea } from "@/shared/components/ui/textarea"
+import { REGIONS } from "@/shared/constants/regions.constant"
 
 import type {
   CreatePatientConsultationReferralFormPayload,
@@ -200,18 +201,39 @@ export function PatientConsultationReferralForm({
                 </div>
 
                 <div>
-                  <div>
-                    Region{" "}
-                    <span className="text-xs italic">
-                      (N/A if from CO):
-                    </span>
-                  </div>
-                  <FormInput
-                    form={form}
-                    name="region"
-                    readOnly={isFieldReadOnly("region")}
-                  />
-                </div>
+  <div>
+    Region{" "}
+    <span className="text-xs italic">
+      (N/A if from CO):
+    </span>
+  </div>
+
+  <form.Field name="region">
+    {(field: any) => (
+      <select
+        value={field.state.value || ""}
+        onChange={(e) =>
+          field.handleChange(e.target.value)
+        }
+        disabled={isFieldReadOnly("region")}
+        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <option value="">
+          Select Region
+        </option>
+
+        {REGIONS.map((region) => (
+          <option
+            key={region.id}
+            value={region.regionName}
+          >
+            {region.regionName}
+          </option>
+        ))}
+      </select>
+    )}
+  </form.Field>
+</div>
 
                 <div>
                   <div>

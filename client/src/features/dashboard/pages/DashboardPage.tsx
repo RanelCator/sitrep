@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 
 import {
+  Activity,
   AlertTriangle,
   BedDouble,
   Building2,
@@ -112,6 +113,17 @@ const modules = [
     icon: Info,
     href: "/other-information",
   },
+
+  authStore.hasArsAccess(
+    ARS_PERMISSIONS.PATIENT_REFERRAL,
+  ) && {
+    title: "Patient Referral",
+    description:
+      "Patient referral information and tracking",
+    icon: Activity,
+    href: "/patient-consultation-referral-form",
+  },
+
 ].filter(Boolean)
 
 export function DashboardPage() {

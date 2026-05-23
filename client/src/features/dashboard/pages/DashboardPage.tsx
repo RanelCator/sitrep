@@ -131,7 +131,7 @@ const modules = [
     description:
       "Manage submitted incident reports",
     icon: ShieldAlert,
-    href: "/deped-incident-reports",
+    href: "/deped-incident-report",
   },
 
  authStore.hasArsAccess(

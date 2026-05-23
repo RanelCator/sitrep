@@ -523,12 +523,23 @@ export function DashboardPage() {
 
         return (
           <Card
-            key={item.title}
-            onClick={() => {
-              navigate({
-                to: item.href,
-              })
-            }}
+  key={item.title}
+  onClick={() => {
+    if (
+      item.title ===
+      "Playing Venues"
+    ) {
+      setOpenPlayingVenueForm(
+        true,
+      )
+
+      return
+    }
+
+    navigate({
+      to: item.href,
+    })
+  }}
             className="group cursor-pointer rounded-2xl border-0 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
           >
             <CardContent className="flex h-full flex-col gap-4 p-5">

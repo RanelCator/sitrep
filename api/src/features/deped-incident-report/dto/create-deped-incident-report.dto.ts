@@ -48,4 +48,12 @@ export class CreateDepedIncidentReportDto {
 
   @IsString()
   immediateActionsTaken!: string
+
+  @IsOptional()
+  @IsString()
+  currentStatus?: string
+
+  @IsOptional()
+  @IsString()
+  remarks?: string
 }

@@ -52,6 +52,13 @@ import { PLAYING_VENUE_OPTIONS } from "@/shared/constants/area-location"
 import { INCIDENT_TYPES } from "@/shared/constants/incident-types"
 import { useNavigate } from "@tanstack/react-router"
 
+import {
+  alertError,
+  alertSuccess,
+  confirmDanger,
+  showAlertWithDialogHidden,
+} from "@/shared/lib/alert"
+
 const emptyForm: CreateDepedIncidentReportInput = {
   email: "",
   reporterName: "",
@@ -73,7 +80,12 @@ const emptyForm: CreateDepedIncidentReportInput = {
 
   briefDescription: "",
   immediateActionsTaken: "",
+
+  currentStatus: "",
+  remarks: "",
 }
+
+
 
 export default function DepedIncidentReportsPage() {
     const navigate = useNavigate()
@@ -127,51 +139,113 @@ export default function DepedIncidentReportsPage() {
     setOpen(true)
   }
 
-  function handleEdit(item: DepedIncidentReport) {
-    setEditingItem(item)
-    setForm({
-      email: item.email,
-      reporterName: item.reporterName,
-      designationRole: item.designationRole,
-      mobileNumber: item.mobileNumber,
-      agencyOfficeRegion: item.agencyOfficeRegion,
-      incidentType: item.incidentType,
-      date: item.date,
-      time: item.time,
-      location: item.location,
-      area: item.area,
-      briefDescription: item.briefDescription,
-      immediateActionsTaken: item.immediateActionsTaken,
-    })
-    setOpen(true)
-  }
+function handleEdit(item: DepedIncidentReport) {
+  setEditingItem(item)
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+  setForm({
+    email: item.email,
+    reporterName: item.reporterName,
+    designationRole: item.designationRole,
+    mobileNumber: item.mobileNumber,
+    agencyOfficeRegion: item.agencyOfficeRegion,
 
+    incidentType: item.incidentType,
+    incidentTypeOther: item.incidentTypeOther ?? "",
+
+    date: item.date,
+    time: item.time,
+
+    location: item.location,
+    locationOther: item.locationOther ?? "",
+
+    area: item.area,
+    areaOther: item.areaOther ?? "",
+
+    briefDescription: item.briefDescription,
+    immediateActionsTaken:
+      item.immediateActionsTaken,
+
+    currentStatus:
+      item.currentStatus ?? "",
+
+    remarks: item.remarks ?? "",
+  })
+
+  setOpen(true)
+}
+
+async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  e.preventDefault()
+
+  try {
     if (editingItem) {
       await updateMutation.mutateAsync({
         id: editingItem._id,
         payload: form,
       })
+
+      setOpen(false)
+      setEditingItem(null)
+      setForm(emptyForm)
+
+      await alertSuccess({
+        title: "Updated!",
+        text: "DepED incident report updated successfully.",
+        timer: 1500,
+        showConfirmButton: false,
+      })
     } else {
       await createMutation.mutateAsync(form)
+
+      setOpen(false)
+      setEditingItem(null)
+      setForm(emptyForm)
+
+      await alertSuccess({
+        title: "Created!",
+        text: "DepED incident report created successfully.",
+        timer: 1500,
+        showConfirmButton: false,
+      })
     }
-
-    setOpen(false)
-    setEditingItem(null)
-    setForm(emptyForm)
-  }
-
-  async function handleDelete(item: DepedIncidentReport) {
-    const confirmed = window.confirm(
-      "Delete this DepED incident report?",
+  } catch {
+    await showAlertWithDialogHidden(
+      () => setOpen(false),
+      () => setOpen(true),
+      () =>
+        alertError({
+          title: "Save failed",
+          text: "Please check the form and try again.",
+        }),
     )
-
-    if (!confirmed) return
-
-    await deleteMutation.mutateAsync(item._id)
   }
+}
+
+async function handleDelete(item: DepedIncidentReport) {
+  const confirmed = await confirmDanger({
+    title: "Delete report?",
+    text: "This DepED incident report will be permanently deleted.",
+    confirmText: "Yes, delete it",
+  })
+
+  if (!confirmed) return
+
+  try {
+    await deleteMutation.mutateAsync(item._id)
+
+    await alertSuccess({
+      title: "Deleted!",
+      text: "DepED incident report deleted successfully.",
+      timer: 1500,
+      showConfirmButton: false,
+    })
+  } catch {
+    await alertError({
+      title: "Delete failed",
+      text: "Unable to delete the report. Please try again.",
+    })
+  }
+}
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6">
@@ -217,6 +291,8 @@ export default function DepedIncidentReportsPage() {
                     <TableHead>Time</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead>Area</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Remarks</TableHead>
                     <TableHead className="w-[120px] text-right">
                       Actions
                     </TableHead>
@@ -227,7 +303,7 @@ export default function DepedIncidentReportsPage() {
                   {reportsQuery.isLoading ? (
                     <TableRow>
                       <TableCell
-                        colSpan={7}
+                        colSpan={9}
                         className="h-24 text-center"
                       >
                         Loading reports...
@@ -252,7 +328,14 @@ export default function DepedIncidentReportsPage() {
                         <TableCell>{item.time}</TableCell>
                         <TableCell>{item.location}</TableCell>
                         <TableCell>{item.area}</TableCell>
-
+                        <TableCell>
+                          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                            {item.currentStatus || "-"}
+                          </span>
+                        </TableCell>
+                        <TableCell className="max-w-[250px] truncate">
+                          {item.remarks || "-"}
+                        </TableCell>
                         <TableCell>
                           <div className="flex justify-end gap-2">
                             <Button
@@ -279,7 +362,7 @@ export default function DepedIncidentReportsPage() {
                   ) : (
                     <TableRow>
                       <TableCell
-                        colSpan={7}
+                        colSpan={9}
                         className="h-24 text-center"
                       >
                         No incident reports found.
@@ -518,6 +601,25 @@ export default function DepedIncidentReportsPage() {
                   />
                 </div>
               </FormSection>
+              <FormSection title="Status Information">
+  <div className="space-y-5">
+    <FormInput
+      label="Current Status"
+      value={form.currentStatus ?? ""}
+      onChange={(value) =>
+        handleChange("currentStatus", value)
+      }
+    />
+
+    <FormTextarea
+      label="Remarks"
+      value={form.remarks ?? ""}
+      onChange={(value) =>
+        handleChange("remarks", value)
+      }
+    />
+  </div>
+</FormSection>
             </div>
 
             <div className="sticky bottom-0 -mx-4 -mb-6 mt-6 border-t bg-white px-4 py-4 md:-mx-8 md:px-8">

@@ -5,13 +5,25 @@ export type DepedIncidentReport = {
   designationRole: string
   mobileNumber: string
   agencyOfficeRegion: string
+
   incidentType: string
+  incidentTypeOther?: string
+
   date: string
   time: string
+
   location: string
+  locationOther?: string
+
   area: string
+  areaOther?: string
+
   briefDescription: string
   immediateActionsTaken: string
+
+  currentStatus: string
+  remarks: string
+
   createdAt: string
   updatedAt: string
 }
@@ -37,6 +49,9 @@ export type CreateDepedIncidentReportInput = {
 
   briefDescription: string
   immediateActionsTaken: string
+
+  currentStatus: string
+  remarks: string
 }
 
 export type UpdateDepedIncidentReportInput =

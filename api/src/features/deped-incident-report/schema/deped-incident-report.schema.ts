@@ -50,6 +50,12 @@ export class DepedIncidentReport {
 
   @Prop({ type: String, required: true, trim: true })
   immediateActionsTaken!: string
+
+  @Prop({ type: String, trim: true, default: '' })
+  currentStatus!: string
+
+  @Prop({ type: String, trim: true, default: '' })
+  remarks!: string
 }
 
 export const DepedIncidentReportSchema =

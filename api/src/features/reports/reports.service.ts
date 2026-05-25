@@ -119,60 +119,72 @@ export class ReportsService {
     }
   }
 
-  private getReportCutoffRange(
-    dateString: string,
-    cutoff: ReportCutoff,
-  ) {
-    const [year, month, day] = dateString
-      .split('-')
-      .map(Number)
-
-    if (cutoff === '8am') {
-      const start = new Date(
-        year,
-        month - 1,
-        day - 1,
-        16,
-        0,
-        0,
-        0,
-      )
-
-      const end = new Date(
-        year,
-        month - 1,
-        day,
-        7,
-        0,
-        0,
-        0,
-      )
-
-      return { start, end }
-    }
-
-    const start = new Date(
+  private getManilaDate(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute = 0,
+) {
+  // Convert PH time (UTC+8) to UTC Date
+  return new Date(
+    Date.UTC(
       year,
       month - 1,
       day,
-      7,
+      hour - 8,
+      minute,
       0,
       0,
-      0,
+    ),
+  )
+}
+
+private getReportCutoffRange(
+  dateString: string,
+  cutoff: ReportCutoff,
+) {
+  const [year, month, day] = dateString
+    .split('-')
+    .map(Number)
+
+  // 8AM REPORT
+  // Previous day 4PM -> Current day 7AM
+  if (cutoff === '8am') {
+    const start = this.getManilaDate(
+      year,
+      month,
+      day - 1,
+      16,
     )
 
-    const end = new Date(
+    const end = this.getManilaDate(
       year,
-      month - 1,
+      month,
       day,
-      16,
-      0,
-      0,
-      0,
+      7,
     )
 
     return { start, end }
   }
+
+  // 5PM REPORT
+  // Current day 7AM -> Current day 4PM
+  const start = this.getManilaDate(
+    year,
+    month,
+    day,
+    7,
+  )
+
+  const end = this.getManilaDate(
+    year,
+    month,
+    day,
+    16,
+  )
+  return { start, end }
+}
 
   private getArrivedCount(item: any) {
     return (

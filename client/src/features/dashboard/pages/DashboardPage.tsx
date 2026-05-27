@@ -469,7 +469,50 @@ export function DashboardPage() {
             </p>
           </div>
         </header>
+  <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
+          {summaryCards.map((item) => {
+            const Icon =
+              item.icon
 
+            return (
+              <Card
+                key={item.title}
+                className="rounded-2xl border-0 shadow-sm"
+              >
+                <CardContent className="space-y-4 p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-sm font-semibold text-slate-600">
+                      {item.title}
+                    </p>
+
+                    <div
+                      className={cn(
+                        "rounded-xl p-2",
+                        item.accent,
+                      )}
+                    >
+                      <Icon className="size-5" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <h2 className="text-3xl font-bold text-slate-900">
+                      {item.value}
+                    </h2>
+
+                    {item.subtitle && (
+                      <p className="mt-1 text-xs font-medium text-slate-500">
+                        {
+                          item.subtitle
+                        }
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </section>
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
           <Card className="rounded-2xl border-0 shadow-sm lg:col-span-2">
             <CardHeader>
@@ -593,50 +636,7 @@ export function DashboardPage() {
   </Card>
 </section>
 
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
-          {summaryCards.map((item) => {
-            const Icon =
-              item.icon
-
-            return (
-              <Card
-                key={item.title}
-                className="rounded-2xl border-0 shadow-sm"
-              >
-                <CardContent className="space-y-4 p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-sm font-semibold text-slate-600">
-                      {item.title}
-                    </p>
-
-                    <div
-                      className={cn(
-                        "rounded-xl p-2",
-                        item.accent,
-                      )}
-                    >
-                      <Icon className="size-5" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <h2 className="text-3xl font-bold text-slate-900">
-                      {item.value}
-                    </h2>
-
-                    {item.subtitle && (
-                      <p className="mt-1 text-xs font-medium text-slate-500">
-                        {
-                          item.subtitle
-                        }
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </section>
+      
       </div>
 
       <FormDialog

@@ -1,4 +1,11 @@
 // src/features/billeting-quarters/types/billeting-quarters.types.ts
+export interface DelegationMovement {
+  DateTimeEntered?: string
+  athletes?: number
+  coaches?: number
+  advance_party?: number
+  trainers?: number
+}
 
 export interface BilletingQuarter {
   _id: string
@@ -14,6 +21,7 @@ arrived?: {
     advance_party: number
     trainers: number
 }
+  departure?: DelegationMovement
   AddedBy?: {
     userId?: string
     name: string

@@ -12,6 +12,7 @@ import { UpdateBilletingQuarterDto } from './dto/update-billeting-quarter.dto'
 import { FetchBilletingQuartersDto } from './dto/fetch-billeting-quarters.dto'
 import { UpdateArrivalDto } from './dto/update-arrival.dto'
 import { DelegationArrivalLog, DelegationArrivalLogDocument } from './schemas/delegation-arrival-log.schema'
+import { UpdateDepartureDto } from './dto/update-departure.dto'
 
 @Injectable()
 export class BilletingQuartersService {
@@ -180,6 +181,44 @@ async findAll(query: FetchBilletingQuartersDto) {
   return {
     success: true,
     message: 'Delegation arrival updated successfully',
+    data: updated,
+  }
+}
+
+async updateDeparture(
+  id: string,
+  dto: UpdateDepartureDto,
+) {
+  const DateTimeEntered =
+    dto.DateTimeEntered ?? new Date()
+
+  const departureData = {
+    DateTimeEntered,
+    athletes: dto.athletes ?? 0,
+    coaches: dto.coaches ?? 0,
+    advance_party: dto.advance_party ?? 0,
+    trainers: dto.trainers ?? 0,
+  }
+
+  const updated =
+    await this.billetingQuarterModel.findByIdAndUpdate(
+      id,
+      {
+        departure: departureData,
+      },
+      { new: true },
+    )
+
+  if (!updated) {
+    throw new NotFoundException(
+      'Billeting quarter not found',
+    )
+  }
+
+  return {
+    success: true,
+    message:
+      'Delegation departure updated successfully',
     data: updated,
   }
 }

@@ -21,6 +21,7 @@ import { CreateBilletingQuarterDto } from './dto/create-billeting-quarter.dto'
 import { UpdateBilletingQuarterDto } from './dto/update-billeting-quarter.dto'
 import { FetchBilletingQuartersDto } from './dto/fetch-billeting-quarters.dto'
 import { UpdateArrivalDto } from './dto/update-arrival.dto'
+import { UpdateDepartureDto } from './dto/update-departure.dto'
 
 @Controller('billeting-quarters')
 @UseGuards(JwtAuthGuard)
@@ -74,5 +75,16 @@ export class BilletingQuartersController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.billetingQuartersService.remove(id)
+  }
+
+  @Patch(':id/departure')
+  updateDeparture(
+    @Param('id') id: string,
+    @Body() dto: UpdateDepartureDto,
+  ) {
+    return this.billetingQuartersService.updateDeparture(
+      id,
+      dto,
+    )
   }
 }

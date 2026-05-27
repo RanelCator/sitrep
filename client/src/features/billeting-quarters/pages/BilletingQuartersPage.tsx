@@ -36,6 +36,10 @@ import type {
 } from "@/features/billeting-quarters/types/billeting-quarters.types"
 import type { UpdateArrivalPayload } from "@/features/billeting-quarters/types/arrival.types"
 
+import { DepartureForm } from "@/features/billeting-quarters/components/DepartureForm"
+import { useUpdateDepartureMutation } from "@/features/billeting-quarters/hooks/useDepartureMutation"
+import type { UpdateDeparturePayload } from "@/features/billeting-quarters/types/departure.types"
+
 export function BilletingQuartersPage() {
   const navigate = useNavigate()
 
@@ -47,6 +51,12 @@ export function BilletingQuartersPage() {
   const [openArrivalForm, setOpenArrivalForm] = useState(false)
   const [selectedArrivalItem, setSelectedArrivalItem] =
     useState<BilletingQuarter | null>(null)
+
+    const [openDepartureForm, setOpenDepartureForm] =
+  useState(false)
+
+const [selectedDepartureItem, setSelectedDepartureItem] =
+  useState<BilletingQuarter | null>(null)
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -66,6 +76,7 @@ export function BilletingQuartersPage() {
   const deleteMutation = useDeleteBilletingQuarterMutation()
   const statusMutation = useSetBilletingQuarterStatusMutation()
   const arrivalMutation = useUpdateArrivalMutation()
+  const departureMutation = useUpdateDepartureMutation()
 
   const items = query.data?.data ?? []
   const total = query.data?.meta?.total ?? 0
@@ -83,6 +94,11 @@ export function BilletingQuartersPage() {
         onArrival: (item) => {
           setSelectedArrivalItem(item)
           setOpenArrivalForm(true)
+        },
+
+        onDeparture: (item) => {
+          setSelectedDepartureItem(item)
+          setOpenDepartureForm(true)
         },
 
         onDelete: async (item) => {
@@ -199,6 +215,38 @@ export function BilletingQuartersPage() {
     }
   }
 
+  const handleDepartureSubmit = async (
+  payload: UpdateDeparturePayload,
+) => {
+  if (!selectedDepartureItem) return
+
+  try {
+    await departureMutation.mutateAsync({
+      id: selectedDepartureItem._id,
+      payload,
+    })
+
+    await alertSuccess({
+      title: "Departure Updated",
+      timer: 1200,
+      showConfirmButton: false,
+    })
+
+    setOpenDepartureForm(false)
+    setSelectedDepartureItem(null)
+  } catch {
+    await showAlertWithDialogHidden(
+      () => setOpenDepartureForm(false),
+      () => setOpenDepartureForm(true),
+      () =>
+        alertError({
+          title: "Save Failed",
+          text: "Unable to save departure data.",
+        }),
+    )
+  }
+}
+
   const isSubmitting = createMutation.isPending || updateMutation.isPending
 
   return (
@@ -275,6 +323,22 @@ export function BilletingQuartersPage() {
           />
         )}
       </FormDialog>
+
+      <FormDialog
+  open={openDepartureForm}
+  onOpenChange={setOpenDepartureForm}
+  title="Update Delegation Departure"
+  description="Encode departure count for this billeting quarter."
+>
+  {selectedDepartureItem && (
+    <DepartureForm
+      key={selectedDepartureItem._id}
+      billetingQuarter={selectedDepartureItem}
+      isSubmitting={departureMutation.isPending}
+      onSubmit={handleDepartureSubmit}
+    />
+  )}
+</FormDialog>
     </div>
   )
 }

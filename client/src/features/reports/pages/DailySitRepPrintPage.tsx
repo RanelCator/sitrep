@@ -23,34 +23,6 @@ function formatDate(value?: string) {
   })
 }
 
-function percent(value?: number) {
-  return `${value ?? 0}%`
-}
-
-function getPreparednessBadge(rating: number) {
-  if (rating >= 95) {
-    return {
-      progress: "bg-emerald-600",
-    }
-  }
-
-  if (rating >= 85) {
-    return {
-      progress: "bg-lime-500",
-    }
-  }
-
-  if (rating >= 70) {
-    return {
-      progress: "bg-amber-500",
-    }
-  }
-
-  return {
-    progress: "bg-red-500",
-  }
-}
-
 export function DailySitRepPrintPage() {
   const { id } = useParams({
     from: "/_authenticated/reports/$id/view",
@@ -62,7 +34,6 @@ export function DailySitRepPrintPage() {
 
   const delegationArrival = data?.delegationArrival
   const billeting = data?.billetingQuartersStatus
-  const playingVenue = data?.playingVenueStatus
 
   if (query.isLoading) {
     return <div className="p-6">Loading report...</div>
@@ -74,99 +45,99 @@ export function DailySitRepPrintPage() {
 
   return (
     <div className="bg-slate-100 p-6 print:bg-white print:p-0">
-<style>
-  {`
-    @page {
-      size: A4 landscape;
-      margin: 8mm;
-    }
+      <style>
+        {`
+          @page {
+            size: A4 landscape;
+            margin: 8mm;
+          }
 
-    @media print {
-      html,
-      body {
-        background: white;
-      }
+          @media print {
+            html,
+            body {
+              background: white;
+            }
 
-      .delegation-arrival-section {
-        break-before: page;
-        page-break-before: always;
-        break-inside: auto;
-        page-break-inside: auto;
-      }
+            .delegation-arrival-section {
+              break-before: page;
+              page-break-before: always;
+              break-inside: auto;
+              page-break-inside: auto;
+            }
 
-      .delegation-header,
-      .delegation-summary {
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
+            .delegation-header,
+            .delegation-summary {
+              break-inside: avoid;
+              page-break-inside: avoid;
+            }
 
-      .report-page {
-        width: auto;
-        min-height: auto;
-        padding: 0;
-        box-sizing: border-box;
-      }
+            .report-page {
+              width: auto;
+              min-height: auto;
+              padding: 0;
+              box-sizing: border-box;
+            }
 
-      .report-page,
-.report-page table,
-.report-page th,
-.report-page td {
-  font-family: Arial, Tahoma, sans-serif;
-}
+            .report-page,
+            .report-page table,
+            .report-page th,
+            .report-page td {
+              font-family: Arial, Tahoma, sans-serif;
+            }
 
-.report-html p {
-  margin: 0 0 6px 0;
-}
+            .report-html p {
+              margin: 0 0 6px 0;
+            }
 
-      .page-break-before {
-        break-before: page;
-        page-break-before: always;
-      }
+            .page-break-before {
+              break-before: page;
+              page-break-before: always;
+            }
 
-      .section-title {
-        break-after: avoid;
-        page-break-after: avoid;
-      }
+            .section-title {
+              break-after: avoid;
+              page-break-after: avoid;
+            }
 
-      .keep-together {
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
+            .keep-together {
+              break-inside: avoid;
+              page-break-inside: avoid;
+            }
 
-      thead {
-        display: table-header-group;
-      }
+            thead {
+              display: table-header-group;
+            }
 
-      tfoot {
-        display: table-footer-group;
-      }
+            tfoot {
+              display: table-footer-group;
+            }
 
-      tr {
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-    }
+            tr {
+              break-inside: avoid;
+              page-break-inside: avoid;
+            }
+          }
 
-    @media screen {
-      .report-page {
-        width: 297mm;
-        min-height: 210mm;
-        padding: 12mm;
-        margin: 0 auto 24px auto;
-        box-sizing: border-box;
-      }
-    }
+          @media screen {
+            .report-page {
+              width: 297mm;
+              min-height: 210mm;
+              padding: 12mm;
+              margin: 0 auto 24px auto;
+              box-sizing: border-box;
+            }
+          }
 
-    .report-html p {
-      margin: 0 0 6px 0;
-    }
+          .report-html p {
+            margin: 0 0 6px 0;
+          }
 
-    .report-html ul,
-    .report-html ol {
-      margin-left: 18px;
-    }
-  `}
-</style>
+          .report-html ul,
+          .report-html ol {
+            margin-left: 18px;
+          }
+        `}
+      </style>
 
       <div className="mb-4 flex justify-end print:hidden">
         <Button onClick={() => window.print()}>
@@ -214,174 +185,115 @@ export function DailySitRepPrintPage() {
               </div>
             </section>
 
-            <section className="avoid-break space-y-3">
-              <SectionTitle
-                title="Status of Playing Venue"
-                color="#004C97"
-              />
+            <section className="avoid-break col-span-2">
+              <SectionTitle title="Weather Updates" color="#0F766E" />
 
-              <VenueRow
-                label="Infrastructure"
-                value={playingVenue?.infrastructure ?? 0}
-                color="#12a04a"
-                description={playingVenue?.infrastructure_description}
-              />
-
-              <VenueRow
-                label="Peripherals"
-                value={playingVenue?.peripherals ?? 0}
-                color="#f39c12"
-                description={playingVenue?.peripherals_description}
-              />
-
-              <VenueRow
-                label="Sports Equipment"
-                value={playingVenue?.sports_equipment ?? 0}
-                color="#0070c0"
-                description={playingVenue?.sports_equipment_description}
-              />
-            </section>
-
-            <section className="avoid-break">
-              <SectionTitle
-                title="Status of Billeting Quarters"
-                color="#008037"
-              />
-
-              <div className="mt-2 rounded-xl border border-emerald-600 bg-emerald-50 px-3 py-2">
-                <p className="text-center text-[9px] font-black uppercase text-emerald-900">
-                  Overall Average Preparedness Rating
-                </p>
-
-                <p className="text-center text-[34px] font-black leading-none text-emerald-700">
-                  {percent(
-                    billeting?.overallAveragePreparednessRating,
-                  )}
-                </p>
-              </div>
-
-              <table className="mt-2 w-full border-collapse text-[7.5px]">
+              <table className="mt-3 w-full border-collapse text-[10px]">
                 <thead>
-                  <tr className="bg-[#008037] text-white">
-                    <th className="border p-1">Billeting Quarter</th>
-                    <th className="border p-1">Delegation</th>
-                    <th className="border p-1">Rating</th>
+                  <tr className="bg-[#0F766E] text-white">
+                    <th className="border p-1">Place</th>
+                    <th className="border p-1">Temperature</th>
+                    <th className="border p-1">Description</th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {billeting?.list?.map((item: any, index: number) => {
-                    const rating = item.preparedness_rating ?? 0
-                    const status = getPreparednessBadge(rating)
+                  {data.weatherUpdates?.length ? (
+                    data.weatherUpdates.map((item: any, index: number) => {
+                      const tempStyle = getWeatherTemperatureStyle(
+                        item.warningLevel,
+                      )
 
-                    return (
-                      <tr key={`${item.billeting_quarter}-${index}`}>
-                        <td className="border px-1 py-[2px]">
-                          {index + 1}. {item.billeting_quarter}
-                        </td>
+                      return (
+                        <tr key={`${item.place}-${index}`}>
+                          <td className="border px-2 py-1 font-bold">
+                            {item.place}
+                          </td>
 
-                        <td className="border px-1 py-[2px]">
-                          {item.delegation}
-                        </td>
-
-                        <td className="border px-1 py-[2px]">
-                          <div className="flex items-center gap-1">
-                            <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
-                              <div
-                                className={`h-2 rounded-full ${status.progress}`}
-                                style={{
-                                  width: `${Math.min(rating, 100)}%`,
-                                }}
-                              />
-                            </div>
-
-                            <span className="w-7 text-right font-bold">
-                              {Number(rating).toFixed(0)}%
+                          <td className="border px-2 py-1 text-center">
+                            <span
+                              className={`rounded-full px-3 py-1 text-[11px] font-black ${tempStyle}`}
+                            >
+                              {item.temperature}
                             </span>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
+                          </td>
+
+                          <td className="border px-2 py-1">
+                            {item.description || "—"}
+                          </td>
+                        </tr>
+                      )
+                    })
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="border px-2 py-4 text-center text-[10px]"
+                      >
+                        No weather updates encoded for this report date.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </section>
           </div>
 
-      <div className="delegation-arrival-section mt-4">
-  <div className="delegation-header">
-    <SectionTitle
-      title="Status of Delegation Arrival"
-      color="#003A78"
-    />
+          <div className="delegation-arrival-section mt-4">
+            <div className="delegation-header">
+              <SectionTitle
+                title="Status of Delegation Departure"
+                color="#003A78"
+              />
 
-    <div className="delegation-summary mt-2 grid grid-cols-6 gap-2">
-      <MetricBox
-        title="Expected Delegates"
-        value={delegationArrival?.totalExpectedDelegates}
-      />
+              <div className="delegation-summary mt-2 grid grid-cols-5 gap-2">
+                <MetricBox
+                  title="Total Arrived"
+                  value={delegationArrival?.totalArrived}
+                />
 
-      <MetricBox
-        title="Total Arrived"
-        value={delegationArrival?.totalArrived}
-      />
+                <MetricBox
+                  title="Total Departed"
+                  value={delegationArrival?.totalDeparted}
+                />
 
-      <MetricBox
-        title="Arrival Rate"
-        value={`${delegationArrival?.overallArrivalRate ?? 0}%`}
-      />
+                <MetricBox
+                  title="Departure Rate"
+                  value={`${delegationArrival?.overallDepartureRate ?? 0}%`}
+                />
 
-      <MetricBox
-        title="Remaining"
-        value={delegationArrival?.remainingDelegates}
-      />
+                <MetricBox
+                  title="Remaining After Departure"
+                  value={delegationArrival?.remainingAfterDeparture}
+                />
 
-      <MetricBox
-        title="Highest Rate"
-        value={`${delegationArrival?.highestArrivalRate?.rate ?? 0}%`}
-        subtitle={delegationArrival?.highestArrivalRate?.region}
-      />
-
-      <MetricBox
-        title="Assigned Billeting"
-        value={billeting?.billetingQuartersAssigned}
-      />
-    </div>
-  </div>
+                <MetricBox
+                  title="Highest Departure Rate"
+                  value={`${delegationArrival?.highestDepartureRate?.rate ?? 0}%`}
+                  subtitle={delegationArrival?.highestDepartureRate?.region}
+                />
+              </div>
+            </div>
 
             <div className="mt-3 grid grid-cols-[62%_38%] gap-3">
-             <table className="w-full table-fixed border-collapse text-[7.5px]">
-  <colgroup>
-    <col className="w-[36%]" />
-    <col className="w-[32%]" />
-    <col className="w-[9%]" />
-    <col className="w-[8%]" />
-    <col className="w-[15%]" />
-  </colgroup>
+              <table className="w-full table-fixed border-collapse text-[7.5px]">
+                <colgroup>
+                  <col className="w-[36%]" />
+                  <col className="w-[32%]" />
+                  <col className="w-[9%]" />
+                  <col className="w-[8%]" />
+                  <col className="w-[15%]" />
+                </colgroup>
 
-  <thead>
-    <tr className="bg-[#003A78] text-white">
-      <th className="border p-1">
-        Delegation
-      </th>
-
-      <th className="border p-1">
-        Billeting Quarters
-      </th>
-
-      <th className="border p-1">
-        Expected
-      </th>
-
-      <th className="border p-1">
-        Arrived
-      </th>
-
-      <th className="border p-1">
-        Rate
-      </th>
-    </tr>
-  </thead>
+                <thead>
+                  <tr className="bg-[#003A78] text-white">
+                    <th className="border p-1">Delegation</th>
+                    <th className="border p-1">Billeting Quarters</th>
+                    <th className="border p-1">Arrived</th>
+                    <th className="border p-1">Departed</th>
+                    <th className="border p-1">Departure Rate</th>
+                  </tr>
+                </thead>
 
                 <tbody>
                   {delegationArrival?.progressByRegion?.map(
@@ -396,42 +308,43 @@ export function DailySitRepPrintPage() {
                         </td>
 
                         <td className="border px-1 py-[2px] text-right">
-                          {item.expected_delegates?.toLocaleString?.() ??
-                            item.expected_delegates}
-                        </td>
-
-                        <td className="border px-1 py-[2px] text-right">
                           {item.arrived_total?.toLocaleString?.() ??
                             item.arrived_total}
                         </td>
 
-                        <td className="border px-1 py-[2px]">
-  <div className="flex items-center gap-1">
-    <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-200">
-      <div
-        className={`h-2 rounded-full ${
-          Number(item.arrival_rate ?? 0) >= 90
-            ? "bg-emerald-600"
-            : Number(item.arrival_rate ?? 0) >= 70
-              ? "bg-lime-500"
-              : Number(item.arrival_rate ?? 0) >= 40
-                ? "bg-amber-500"
-                : "bg-red-500"
-        }`}
-        style={{
-          width: `${Math.min(
-            Number(item.arrival_rate ?? 0),
-            100,
-          )}%`,
-        }}
-      />
-    </div>
+                        <td className="border px-1 py-[2px] text-right">
+                          {item.departed_total?.toLocaleString?.() ??
+                            item.departed_total ??
+                            0}
+                        </td>
 
-    <span className="w-8 text-right font-bold">
-      {Number(item.arrival_rate ?? 0).toFixed(0)}%
-    </span>
-  </div>
-</td>
+                        <td className="border px-1 py-[2px]">
+                          <div className="flex items-center gap-1">
+                            <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-200">
+                              <div
+                                className={`h-2 rounded-full ${
+                                  Number(item.departure_rate ?? 0) >= 90
+                                    ? "bg-emerald-600"
+                                    : Number(item.departure_rate ?? 0) >= 70
+                                      ? "bg-lime-500"
+                                      : Number(item.departure_rate ?? 0) >= 40
+                                        ? "bg-amber-500"
+                                        : "bg-red-500"
+                                }`}
+                                style={{
+                                  width: `${Math.min(
+                                    Number(item.departure_rate ?? 0),
+                                    100,
+                                  )}%`,
+                                }}
+                              />
+                            </div>
+
+                            <span className="w-8 text-right font-bold">
+                              {Number(item.departure_rate ?? 0).toFixed(0)}%
+                            </span>
+                          </div>
+                        </td>
                       </tr>
                     ),
                   )}
@@ -442,54 +355,22 @@ export function DailySitRepPrintPage() {
                     </td>
 
                     <td className="border px-2 py-1 text-right">
-                      {delegationArrival?.totalExpectedDelegates?.toLocaleString?.()}
-                    </td>
-
-                    <td className="border px-2 py-1 text-right">
                       {delegationArrival?.totalArrived?.toLocaleString?.()}
                     </td>
 
                     <td className="border px-2 py-1 text-right">
+                      {delegationArrival?.totalDeparted?.toLocaleString?.()}
+                    </td>
+
+                    <td className="border px-2 py-1 text-right">
                       {Number(
-                        delegationArrival?.overallArrivalRate ?? 0,
+                        delegationArrival?.overallDepartureRate ?? 0,
                       ).toFixed(0)}
                       %
                     </td>
                   </tr>
 
-                  {delegationArrival?.otherDelegations?.map(
-                    (item: any, index: number) => {
-                      const rate =
-                        item.expected_delegates > 0
-                          ? (
-                              (item.arrived / item.expected_delegates) *
-                              100
-                            ).toFixed(0)
-                          : "0"
-
-                      return (
-                        <tr key={`other-${index}`} className="bg-slate-50">
-                          <td colSpan={2} className="border px-2 py-1">
-                            {item.description}
-                          </td>
-
-                          <td className="border px-2 py-1 text-right">
-                            {item.expected_delegates?.toLocaleString?.()}
-                          </td>
-
-                          <td className="border px-2 py-1 text-right">
-                            {item.arrived?.toLocaleString?.()}
-                          </td>
-
-                          <td className="border px-2 py-1 text-right">
-                            {rate}%
-                          </td>
-                        </tr>
-                      )
-                    },
-                  )}
-
-                  <tr className="bg-[#003A78] font-black text-yellow-300">
+                  <tr className="bg-[#003A78] font-black text-yellow-300 hidden">
                     <td colSpan={2} className="border px-2 py-1 uppercase">
                       Total Number of Delegations
                     </td>
@@ -499,12 +380,12 @@ export function DailySitRepPrintPage() {
                     </td>
 
                     <td className="border px-2 py-1 text-right">
-                      {delegationArrival?.grandTotalArrived?.toLocaleString?.()}
+                      {delegationArrival?.totalDeparted?.toLocaleString?.()}
                     </td>
 
                     <td className="border px-2 py-1 text-right">
                       {Number(
-                        delegationArrival?.grandOverallArrivalRate ?? 0,
+                        delegationArrival?.overallDepartureRate ?? 0,
                       ).toFixed(0)}
                       %
                     </td>
@@ -515,52 +396,77 @@ export function DailySitRepPrintPage() {
               <div className="space-y-3">
                 <div className="rounded-md border p-3">
                   <div className="rounded-t-md bg-[#003A78] p-1 text-center text-[10px] font-black uppercase text-white">
-                    Composition of Arrived Personnel
+                    Composition of Departed Personnel
                   </div>
 
                   <div className="mt-3 grid grid-cols-[120px_1fr] items-center gap-3">
-                    <ArrivalCompositionDonut
-                      athletes={delegationArrival?.composition?.athletes}
-                      coaches={delegationArrival?.composition?.coaches}
-                      advanceParty={
-                        delegationArrival?.composition?.advance_party
+                    <PersonnelCompositionDonut
+                      label="Departed"
+                      athletes={
+                        delegationArrival?.composition?.departure?.athletes
                       }
-                      trainers={delegationArrival?.composition?.trainers}
+                      coaches={
+                        delegationArrival?.composition?.departure?.coaches
+                      }
+                      advanceParty={
+                        delegationArrival?.composition?.departure
+                          ?.advance_party
+                      }
+                      trainers={
+                        delegationArrival?.composition?.departure?.trainers
+                      }
                     />
 
                     <div className="grid grid-cols-1 gap-2 text-[9px]">
                       <CompositionLegend
                         label="Athletes"
-                        value={delegationArrival?.composition?.athletes}
-                        total={delegationArrival?.composition?.total}
+                        value={
+                          delegationArrival?.composition?.departure?.athletes
+                        }
+                        total={
+                          delegationArrival?.composition?.departure?.total
+                        }
                         color="#0070C0"
                       />
 
                       <CompositionLegend
                         label="Coaches, Asst. Coaches & Chaperones"
-                        value={delegationArrival?.composition?.coaches}
-                        total={delegationArrival?.composition?.total}
+                        value={
+                          delegationArrival?.composition?.departure?.coaches
+                        }
+                        total={
+                          delegationArrival?.composition?.departure?.total
+                        }
                         color="#43A047"
                       />
 
                       <CompositionLegend
                         label="Advance Party, TWO, Delegation Officials"
-                        value={delegationArrival?.composition?.advance_party}
-                        total={delegationArrival?.composition?.total}
+                        value={
+                          delegationArrival?.composition?.departure
+                            ?.advance_party
+                        }
+                        total={
+                          delegationArrival?.composition?.departure?.total
+                        }
                         color="#F39C12"
                       />
 
                       <CompositionLegend
                         label="Trainers"
-                        value={delegationArrival?.composition?.trainers}
-                        total={delegationArrival?.composition?.total}
+                        value={
+                          delegationArrival?.composition?.departure?.trainers
+                        }
+                        total={
+                          delegationArrival?.composition?.departure?.total
+                        }
                         color="#5E35B1"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-md border p-3 text-center">
+                <div className="rounded-md border p-3 text-center hidden">
                   <div className="rounded-t-md bg-[#003A78] p-1 text-[10px] font-black uppercase text-white">
                     Billeting Quarters Assignment Summary
                   </div>
@@ -607,10 +513,18 @@ export function DailySitRepPrintPage() {
                 <tr className="bg-slate-100">
                   <th className="border border-black p-1">Committee</th>
                   <th className="border border-black p-1">Area/Concern</th>
-                  <th className="border border-black p-1">Current Situation</th>
-                  <th className="border border-black p-1">Issues/Concerns</th>
-                  <th className="border border-black p-1">Actions Undertaken</th>
-                  <th className="border border-black p-1">Recommendations</th>
+                  <th className="border border-black p-1">
+                    Current Situation
+                  </th>
+                  <th className="border border-black p-1">
+                    Issues/Concerns
+                  </th>
+                  <th className="border border-black p-1">
+                    Actions Undertaken
+                  </th>
+                  <th className="border border-black p-1">
+                    Recommendations
+                  </th>
                 </tr>
               </thead>
 
@@ -644,7 +558,8 @@ export function DailySitRepPrintPage() {
                                 <td className="border border-black p-1 align-top">
                                   <div
                                     dangerouslySetInnerHTML={{
-                                      __html: item.cuurent_situation || "—",
+                                      __html:
+                                        item.cuurent_situation || "—",
                                     }}
                                   />
                                 </td>
@@ -652,7 +567,8 @@ export function DailySitRepPrintPage() {
                                 <td className="border border-black p-1 align-top">
                                   <div
                                     dangerouslySetInnerHTML={{
-                                      __html: item.issues_concerns || "—",
+                                      __html:
+                                        item.issues_concerns || "—",
                                     }}
                                   />
                                 </td>
@@ -660,7 +576,8 @@ export function DailySitRepPrintPage() {
                                 <td className="border border-black p-1 align-top">
                                   <div
                                     dangerouslySetInnerHTML={{
-                                      __html: item.actions_undertaken || "—",
+                                      __html:
+                                        item.actions_undertaken || "—",
                                     }}
                                   />
                                 </td>
@@ -668,7 +585,8 @@ export function DailySitRepPrintPage() {
                                 <td className="border border-black p-1 align-top">
                                   <div
                                     dangerouslySetInnerHTML={{
-                                      __html: item.recommendations || "—",
+                                      __html:
+                                        item.recommendations || "—",
                                     }}
                                   />
                                 </td>
@@ -693,11 +611,17 @@ export function DailySitRepPrintPage() {
                   <tr className="bg-slate-100">
                     <th className="border border-black p-1">Date</th>
                     <th className="border border-black p-1">Time</th>
-                    <th className="border border-black p-1">Venue/Location</th>
+                    <th className="border border-black p-1">
+                      Venue/Location
+                    </th>
                     <th className="border border-black p-1">Incident</th>
-                    <th className="border border-black p-1">Persons Involved</th>
+                    <th className="border border-black p-1">
+                      Persons Involved
+                    </th>
                     <th className="border border-black p-1">Initial Action</th>
-                    <th className="border border-black p-1">Current Status</th>
+                    <th className="border border-black p-1">
+                      Current Status
+                    </th>
                     <th className="border border-black p-1">Remarks</th>
                   </tr>
                 </thead>
@@ -709,31 +633,24 @@ export function DailySitRepPrintPage() {
                         <td className="border border-black p-1">
                           {formatDate(item.Date)}
                         </td>
-
                         <td className="border border-black p-1">
                           {item.Time}
                         </td>
-
                         <td className="border border-black p-1">
                           {item.venue_location}
                         </td>
-
                         <td className="border border-black p-1">
                           {item.Incident}
                         </td>
-
                         <td className="border border-black p-1">
                           {item.persons_involved}
                         </td>
-
                         <td className="border border-black p-1">
                           {item.initial_action_taken}
                         </td>
-
                         <td className="border border-black p-1">
                           {item.current_status}
                         </td>
-
                         <td className="border border-black p-1">
                           {item.Remarks}
                         </td>
@@ -747,122 +664,112 @@ export function DailySitRepPrintPage() {
             </section>
 
             <section className="print-section w-full">
-  <SectionTitle
-    title="IV. DepED Reported Incidents"
-    color="#B45309"
-  />
+              <SectionTitle
+                title="IV. DepED Reported Incidents"
+                color="#B45309"
+              />
 
-  <table className="mt-3 w-full border-collapse text-[9px]">
-    <thead>
-      <tr className="bg-slate-100">
-        <th className="border border-black p-1">
-          Reporter
-        </th>
+              <table className="mt-3 w-full border-collapse text-[9px]">
+                <thead>
+                  <tr className="bg-slate-100">
+                    <th className="border border-black p-1">Reporter</th>
+                    <th className="border border-black p-1">Designation</th>
+                    <th className="border border-black p-1">
+                      Agency / Region
+                    </th>
+                    <th className="border border-black p-1">
+                      Type of Incident
+                    </th>
+                    <th className="border border-black p-1">Date & Time</th>
+                    <th className="border border-black p-1">
+                      Location / Area
+                    </th>
+                    <th className="border border-black p-1">
+                      Brief Description
+                    </th>
+                    <th className="border border-black p-1">
+                      Immediate Actions Taken
+                    </th>
+                    <th className="border border-black p-1">
+                      Current Status
+                    </th>
+                    <th className="border border-black p-1">Remarks</th>
+                  </tr>
+                </thead>
 
-        <th className="border border-black p-1">
-          Designation
-        </th>
+                <tbody>
+                  {data.depedIncidentReports?.length ? (
+                    data.depedIncidentReports.map((item: any) => (
+                      <tr key={item._id}>
+                        <td className="border border-black p-1 align-top">
+                          <div className="font-semibold">
+                            {item.reporterName}
+                          </div>
+                          <div className="text-[8px] text-slate-600">
+                            {item.mobileNumber}
+                          </div>
+                        </td>
 
-        <th className="border border-black p-1">
-          Agency / Region
-        </th>
+                        <td className="border border-black p-1 align-top">
+                          {item.designationRole}
+                        </td>
 
-        <th className="border border-black p-1">
-          Type of Incident
-        </th>
+                        <td className="border border-black p-1 align-top">
+                          {item.agencyOfficeRegion}
+                        </td>
 
-        <th className="border border-black p-1">
-          Date & Time
-        </th>
+                        <td className="border border-black p-1 align-top">
+                          {item.incidentType === "Others" &&
+                          item.incidentTypeOther
+                            ? item.incidentTypeOther
+                            : item.incidentType}
+                        </td>
 
-        <th className="border border-black p-1">
-          Location / Area
-        </th>
+                        <td className="border border-black p-1 align-top">
+                          <div>{formatDate(item.date)}</div>
+                          <div className="text-[8px] text-slate-600">
+                            {item.time}
+                          </div>
+                        </td>
 
-        <th className="border border-black p-1">
-          Brief Description
-        </th>
+                        <td className="border border-black p-1 align-top">
+                          <div>
+                            {item.location === "Others" &&
+                            item.locationOther
+                              ? item.locationOther
+                              : item.location}
+                          </div>
 
-        <th className="border border-black p-1">
-          Immediate Actions Taken
-        </th>
-      </tr>
-    </thead>
+                          <div className="text-[8px] text-slate-600">
+                            {item.area === "Others" && item.areaOther
+                              ? item.areaOther
+                              : item.area}
+                          </div>
+                        </td>
 
-    <tbody>
-      {data.depedIncidentReports?.length ? (
-        data.depedIncidentReports.map(
-          (item: any) => (
-            <tr key={item._id}>
-              <td className="border border-black p-1 align-top">
-                <div className="font-semibold">
-                  {item.reporterName}
-                </div>
+                        <td className="border border-black p-1 align-top">
+                          {item.briefDescription}
+                        </td>
 
-                <div className="text-[8px] text-slate-600">
-                  {item.mobileNumber}
-                </div>
-              </td>
+                        <td className="border border-black p-1 align-top">
+                          {item.immediateActionsTaken}
+                        </td>
 
-              <td className="border border-black p-1 align-top">
-                {item.designationRole}
-              </td>
+                        <td className="border border-black p-1 align-top">
+                          {item.currentStatus}
+                        </td>
 
-              <td className="border border-black p-1 align-top">
-                {item.agencyOfficeRegion}
-              </td>
-
-              <td className="border border-black p-1 align-top">
-                {item.incidentType ===
-                  "Others" &&
-                item.incidentTypeOther
-                  ? item.incidentTypeOther
-                  : item.incidentType}
-              </td>
-
-              <td className="border border-black p-1 align-top">
-                <div>
-                  {formatDate(item.date)}
-                </div>
-
-                <div className="text-[8px] text-slate-600">
-                  {item.time}
-                </div>
-              </td>
-
-              <td className="border border-black p-1 align-top">
-                <div>
-                  {item.location ===
-                    "Others" &&
-                  item.locationOther
-                    ? item.locationOther
-                    : item.location}
-                </div>
-
-                <div className="text-[8px] text-slate-600">
-                  {item.area === "Others" &&
-                  item.areaOther
-                    ? item.areaOther
-                    : item.area}
-                </div>
-              </td>
-
-              <td className="border border-black p-1 align-top">
-                {item.briefDescription}
-              </td>
-
-              <td className="border border-black p-1 align-top">
-                {item.immediateActionsTaken}
-              </td>
-            </tr>
-          ),
-        )
-      ) : (
-        <EmptyRows columns={8} rows={4} />
-      )}
-    </tbody>
-  </table>
-</section>
+                        <td className="border border-black p-1 align-top">
+                          {item.remarks}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <EmptyRows columns={10} rows={4} />
+                  )}
+                </tbody>
+              </table>
+            </section>
 
             <section className="print-section w-full">
               <SectionTitle title="V. Other Information" color="#444444" />
@@ -908,6 +815,36 @@ function SectionTitle({
   )
 }
 
+function MetricBox({
+  title,
+  value,
+  subtitle,
+}: {
+  title: string
+  value?: string | number
+  subtitle?: string
+}) {
+  return (
+    <div className="rounded-lg border border-blue-200 bg-white p-2 text-center">
+      <p className="text-[8px] font-black uppercase text-blue-900">
+        {title}
+      </p>
+
+      <p className="mt-1 text-[18px] font-black text-blue-800">
+        {typeof value === "number"
+          ? value.toLocaleString()
+          : value ?? 0}
+      </p>
+
+      {subtitle && (
+        <p className="text-[7px] font-bold text-cyan-700">
+          {subtitle}
+        </p>
+      )}
+    </div>
+  )
+}
+
 function CompositionLegend({
   label,
   value = 0,
@@ -919,8 +856,7 @@ function CompositionLegend({
   total?: number
   color: string
 }) {
-  const percent =
-    total > 0 ? Math.round((value / total) * 100) : 0
+  const percent = total > 0 ? Math.round((value / total) * 100) : 0
 
   return (
     <div className="flex items-center gap-2">
@@ -942,12 +878,31 @@ function CompositionLegend({
   )
 }
 
-function ArrivalCompositionDonut({
+function getWeatherTemperatureStyle(warningLevel?: string) {
+  switch (warningLevel) {
+    case "severe":
+      return "bg-red-700 text-white"
+
+    case "high":
+      return "bg-orange-500 text-white"
+
+    case "moderate":
+      return "bg-amber-400 text-black"
+
+    case "low":
+    default:
+      return "bg-emerald-100 text-emerald-800"
+  }
+}
+
+function PersonnelCompositionDonut({
+  label,
   athletes = 0,
   coaches = 0,
   advanceParty = 0,
   trainers = 0,
 }: {
+  label: string
   athletes?: number
   coaches?: number
   advanceParty?: number
@@ -997,74 +952,13 @@ function ArrivalCompositionDonut({
           </span>
 
           <span className="text-[7px] font-black uppercase leading-none">
-            Arrived
+            {label}
           </span>
 
           <span className="text-[15px] font-black text-blue-900">
             {total.toLocaleString()}
           </span>
         </div>
-      </div>
-    </div>
-  )
-}
-
-function DonutPercent({
-  value,
-  color,
-}: {
-  value: number
-  color: string
-}) {
-  const radius = 18
-  const circumference = 2 * Math.PI * radius
-
-  const visualProgress =
-    value >= 95
-      ? value - 2
-      : value >= 85
-        ? value - 1
-        : value
-
-  const progress = Math.min(
-    Math.max(visualProgress, 0),
-    99,
-  )
-
-  const dashOffset =
-    circumference -
-    (progress / 100) * circumference
-
-  return (
-    <div className="relative size-12">
-      <svg viewBox="0 0 48 48" className="size-12 -rotate-90">
-        <circle
-          cx="24"
-          cy="24"
-          r={radius}
-          fill="none"
-          stroke="#e5e7eb"
-          strokeWidth="7"
-        />
-
-        <circle
-          cx="24"
-          cy="24"
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth="7"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={dashOffset}
-        />
-      </svg>
-
-      <div
-        className="absolute inset-0 flex items-center justify-center text-[7px] font-black"
-        style={{ color }}
-      >
-        {Number(value).toFixed(2)}%
       </div>
     </div>
   )
@@ -1108,73 +1002,6 @@ function groupCurrentSituations(items: any[]) {
         ),
       }
     },
-  )
-}
-
-function VenueRow({
-  label,
-  value,
-  color,
-  description,
-}: {
-  label: string
-  value: number
-  color: string
-  description?: string
-}) {
-  return (
-    <div className="grid h-[66px] grid-cols-[78px_1fr] gap-2 rounded-lg border bg-white p-2">
-      <div className="flex flex-col items-center justify-center gap-1">
-        <p className="text-center text-[6.5px] font-black uppercase leading-none">
-          {label}
-        </p>
-
-        <DonutPercent value={value} color={color} />
-      </div>
-
-<div
-  className="flex h-full items-center justify-center overflow-hidden rounded-lg border px-3 pt-1 pb-4 text-center"
-        style={{
-          borderColor: color,
-          backgroundColor: `${color}12`,
-          color,
-        }}
-      >
-        <p className="line-clamp-3 text-[8px] font-bold leading-tight">
-          {description || "—"}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function MetricBox({
-  title,
-  value,
-  subtitle,
-}: {
-  title: string
-  value?: string | number
-  subtitle?: string
-}) {
-  return (
-    <div className="rounded-lg border border-blue-200 bg-white p-2 text-center">
-      <p className="text-[8px] font-black uppercase text-blue-900">
-        {title}
-      </p>
-
-      <p className="mt-1 text-[18px] font-black text-blue-800">
-        {typeof value === "number"
-          ? value.toLocaleString()
-          : value ?? 0}
-      </p>
-
-      {subtitle && (
-        <p className="text-[7px] font-bold text-cyan-700">
-          {subtitle}
-        </p>
-      )}
-    </div>
   )
 }
 

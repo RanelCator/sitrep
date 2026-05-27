@@ -226,81 +226,137 @@ export function DashboardPage() {
   //   },
   // ]
 
+  // const summaryCards = [
+  //   {
+  //     title:
+  //       "Expected Number of Delegates",
+
+  //     value:
+  //       dashboardData?.expectedDelegates?.toLocaleString() ??
+  //       "0",
+
+  //     icon: Users,
+
+  //     accent:
+  //       "bg-blue-50 text-blue-700",
+  //   },
+
+  //   {
+  //     title: "Total Arrived",
+
+  //     value:
+  //       dashboardData?.totalArrived?.toLocaleString() ??
+  //       "0",
+
+  //     icon: Users,
+
+  //     accent:
+  //       "bg-emerald-50 text-emerald-700",
+  //   },
+
+  //   {
+  //     title: "Remaining Delegates",
+
+  //     value:
+  //       dashboardData?.remainingDelegates?.toLocaleString() ??
+  //       "0",
+
+  //     icon: Users,
+
+  //     accent:
+  //       "bg-violet-50 text-violet-700",
+  //   },
+
+  //   {
+  //     title: "Overall Arrival Rate",
+
+  //     value: `${
+  //       dashboardData?.overallArrivalRate ??
+  //       0
+  //     }%`,
+
+  //     icon: Trophy,
+
+  //     accent:
+  //       "bg-amber-50 text-amber-700",
+  //   },
+
+  //   {
+  //     title: "Highest Arrival Rate",
+
+  //     value: `${
+  //       dashboardData
+  //         ?.highestArrivalRate?.rate ??
+  //       0
+  //     }%`,
+
+  //     subtitle:
+  //       dashboardData
+  //         ?.highestArrivalRate
+  //         ?.region ?? "N/A",
+
+  //     icon: Trophy,
+
+  //     accent:
+  //       "bg-cyan-50 text-cyan-700",
+  //   },
+  // ]
+
   const summaryCards = [
-    {
-      title:
-        "Expected Number of Delegates",
+  {
+    title: "Expected Number of Delegates",
+    value:
+      dashboardData?.expectedDelegates?.toLocaleString() ??
+      "0",
+    icon: Users,
+    accent: "bg-blue-50 text-blue-700",
+  },
 
-      value:
-        dashboardData?.expectedDelegates?.toLocaleString() ??
-        "0",
+  {
+    title: "Total Arrived",
+    value:
+      dashboardData?.totalArrived?.toLocaleString() ??
+      "0",
+    icon: Users,
+    accent: "bg-emerald-50 text-emerald-700",
+  },
 
-      icon: Users,
+  {
+    title: "Total Departed",
+    value:
+      dashboardData?.totalDeparted?.toLocaleString() ??
+      "0",
+    icon: Users,
+    accent: "bg-red-50 text-red-700",
+  },
 
-      accent:
-        "bg-blue-50 text-blue-700",
-    },
+  {
+    title: "Remaining After Departure",
+    value:
+      dashboardData?.remainingAfterDeparture?.toLocaleString() ??
+      "0",
+    icon: Users,
+    accent: "bg-violet-50 text-violet-700",
+  },
 
-    {
-      title: "Total Arrived",
+  {
+    title: "Overall Departure Rate",
+    value: `${dashboardData?.overallDepartureRate ?? 0}%`,
+    icon: Trophy,
+    accent: "bg-orange-50 text-orange-700",
+  },
 
-      value:
-        dashboardData?.totalArrived?.toLocaleString() ??
-        "0",
-
-      icon: Users,
-
-      accent:
-        "bg-emerald-50 text-emerald-700",
-    },
-
-    {
-      title: "Remaining Delegates",
-
-      value:
-        dashboardData?.remainingDelegates?.toLocaleString() ??
-        "0",
-
-      icon: Users,
-
-      accent:
-        "bg-violet-50 text-violet-700",
-    },
-
-    {
-      title: "Overall Arrival Rate",
-
-      value: `${
-        dashboardData?.overallArrivalRate ??
-        0
-      }%`,
-
-      icon: Trophy,
-
-      accent:
-        "bg-amber-50 text-amber-700",
-    },
-
-    {
-      title: "Highest Arrival Rate",
-
-      value: `${
-        dashboardData
-          ?.highestArrivalRate?.rate ??
-        0
-      }%`,
-
-      subtitle:
-        dashboardData
-          ?.highestArrivalRate
-          ?.region ?? "N/A",
-
-      icon: Trophy,
-
-      accent:
-        "bg-cyan-50 text-cyan-700",
-    },
-  ]
+  {
+    title: "Highest Departure Rate",
+    value: `${
+      dashboardData?.highestDepartureRate?.rate ?? 0
+    }%`,
+    subtitle:
+      dashboardData?.highestDepartureRate?.region ?? "N/A",
+    icon: Trophy,
+    accent: "bg-cyan-50 text-cyan-700",
+  },
+]
 
   const handlePlayingVenueSubmit =
     async (
@@ -537,7 +593,7 @@ export function DashboardPage() {
   </Card>
 </section>
 
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
           {summaryCards.map((item) => {
             const Icon =
               item.icon

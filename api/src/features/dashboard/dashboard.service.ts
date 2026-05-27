@@ -33,9 +33,7 @@ export class DashboardService {
     private readonly highlightModel: Model<HighlightDocument>,
   ) {}
 
-  private getArrivedCount(
-    item: BilletingQuarterDocument | any,
-  ) {
+  private getArrivedCount(item: BilletingQuarterDocument | any) {
     return (
       (item.arrived?.athletes ?? 0) +
       (item.arrived?.coaches ?? 0) +
@@ -44,71 +42,61 @@ export class DashboardService {
     )
   }
 
+  private getDepartureCount(item: BilletingQuarterDocument | any) {
+    return (
+      (item.departure?.athletes ?? 0) +
+      (item.departure?.coaches ?? 0) +
+      (item.departure?.advance_party ?? 0) +
+      (item.departure?.trainers ?? 0)
+    )
+  }
+
   async getSummary() {
-    const [
-      billetingQuarters,
-      misc,
-      highlights,
-    ] = await Promise.all([
-      this.billetingQuarterModel.find().lean(),
+    const [billetingQuarters, misc, highlights] =
+      await Promise.all([
+        this.billetingQuarterModel.find().lean(),
 
-      this.miscModel.findOne().lean(),
+        this.miscModel.findOne().lean(),
 
-      this.highlightModel
-        .find()
-        .sort({ createdAt: -1 })
-        .limit(5)
-        .lean(),
-    ])
+        this.highlightModel
+          .find()
+          .sort({ createdAt: -1 })
+          .limit(5)
+          .lean(),
+      ])
 
-    // =========================
-    // EXPECTED DELEGATES
-    // =========================
+    const expectedDelegates = billetingQuarters.reduce(
+      (sum, item) => sum + (item.expected_delegates ?? 0),
+      0,
+    )
 
-    const expectedDelegates =
-      billetingQuarters.reduce(
-        (sum, item) =>
-          sum +
-          (item.expected_delegates ?? 0),
-        0,
-      )
+    const totalArrived = billetingQuarters.reduce(
+      (sum, item) => sum + this.getArrivedCount(item),
+      0,
+    )
 
-    // =========================
-    // TOTAL ARRIVED
-    // =========================
+    const totalDeparted = billetingQuarters.reduce(
+      (sum, item) => sum + this.getDepartureCount(item),
+      0,
+    )
 
-    const totalArrived =
-      billetingQuarters.reduce(
-        (sum, item) =>
-          sum + this.getArrivedCount(item),
-        0,
-      )
+    const remainingDelegates = expectedDelegates - totalArrived
 
-    // =========================
-    // REMAINING
-    // =========================
-
-    const remainingDelegates =
-      expectedDelegates - totalArrived
-
-    // =========================
-    // OVERALL ARRIVAL RATE
-    // =========================
+    const remainingAfterDeparture = totalArrived - totalDeparted
 
     const overallArrivalRate =
       expectedDelegates > 0
         ? Number(
-            (
-              (totalArrived /
-                expectedDelegates) *
-              100
-            ).toFixed(2),
+            ((totalArrived / expectedDelegates) * 100).toFixed(2),
           )
         : 0
 
-    // =========================
-    // PREPAREDNESS AVERAGE
-    // =========================
+    const overallDepartureRate =
+      totalArrived > 0
+        ? Number(
+            ((totalDeparted / totalArrived) * 100).toFixed(2),
+          )
+        : 0
 
     const preparednessAverage =
       billetingQuarters.length > 0
@@ -116,68 +104,59 @@ export class DashboardService {
             (
               billetingQuarters.reduce(
                 (sum, item) =>
-                  sum +
-                  (item.Preparedness_Rating ??
-                    0),
+                  sum + (item.Preparedness_Rating ?? 0),
                 0,
-              ) /
-              billetingQuarters.length
+              ) / billetingQuarters.length
             ).toFixed(2),
           )
         : 0
-
-    // =========================
-    // HIGHEST ARRIVAL RATE
-    // =========================
 
     let highestArrivalRate = {
       region: 'N/A',
       rate: 0,
     }
 
+    let highestDepartureRate = {
+      region: 'N/A',
+      rate: 0,
+    }
+
     billetingQuarters.forEach((item) => {
-      const expected =
-        item.expected_delegates ?? 0
+      const expected = item.expected_delegates ?? 0
+      const arrived = this.getArrivedCount(item)
+      const departed = this.getDepartureCount(item)
 
-      const arrived =
-        this.getArrivedCount(item)
+      if (expected > 0) {
+        const arrivalRate = (arrived / expected) * 100
 
-      if (expected <= 0) return
+        if (arrivalRate > highestArrivalRate.rate) {
+          highestArrivalRate = {
+            region: item.Delegation ?? 'Unknown Delegation',
+            rate: Number(arrivalRate.toFixed(2)),
+          }
+        }
+      }
 
-      const rate =
-        (arrived / expected) * 100
+      if (arrived > 0) {
+        const departureRate = (departed / arrived) * 100
 
-      if (rate > highestArrivalRate.rate) {
-        highestArrivalRate = {
-          region:
-            item.Delegation ??
-            'Unknown Delegation',
-
-          rate: Number(rate.toFixed(2)),
+        if (departureRate > highestDepartureRate.rate) {
+          highestDepartureRate = {
+            region: item.Delegation ?? 'Unknown Delegation',
+            rate: Number(departureRate.toFixed(2)),
+          }
         }
       }
     })
 
-    // =========================
-    // ASSIGNED QUARTERS
-    // =========================
-
-    const billetingQuartersAssigned =
-      billetingQuarters.filter(
-        (item) =>
-          item.Delegation &&
-          item.Delegation.trim() !== '',
-      ).length
-
-    // =========================
-    // RETURN
-    // =========================
+    const billetingQuartersAssigned = billetingQuarters.filter(
+      (item) =>
+        item.Delegation && item.Delegation.trim() !== '',
+    ).length
 
     return {
       success: true,
-
-      message:
-        'Dashboard summary fetched successfully',
+      message: 'Dashboard summary fetched successfully',
 
       data: {
         reportDate: new Date(),
@@ -185,31 +164,26 @@ export class DashboardService {
         expectedDelegates,
 
         totalArrived,
-
         remainingDelegates,
-
         overallArrivalRate,
-
         highestArrivalRate,
+
+        totalDeparted,
+        remainingAfterDeparture,
+        overallDepartureRate,
+        highestDepartureRate,
 
         billetingQuartersAssigned,
 
         totalIdentifiedBilletingQuarters:
-          misc
-            ?.identified_billeting_quarters ??
-          0,
+          misc?.identified_billeting_quarters ?? 0,
 
         preparednessAverage,
 
         venueStatus: {
-          infrastructure:
-            misc?.infrastructure ?? 0,
-
-          peripherals:
-            misc?.peripherals ?? 0,
-
-          sports_equipment:
-            misc?.sports_equipment ?? 0,
+          infrastructure: misc?.infrastructure ?? 0,
+          peripherals: misc?.peripherals ?? 0,
+          sports_equipment: misc?.sports_equipment ?? 0,
         },
 
         latestHighlights: highlights,

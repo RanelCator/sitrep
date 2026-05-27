@@ -54,6 +54,11 @@ import {
   OtherDelegationDocument,
 } from '@/features/other-delegation/schemas/other-delegation.schema'
 
+import {
+  WeatherUpdate,
+  WeatherUpdateDocument,
+} from '@/features/weather-updates/schemas/weather-update.schema'
+
 type ReportCutoff = '8am' | '5pm'
 
 @Injectable()
@@ -85,8 +90,19 @@ export class ReportsService {
 
     @InjectModel(OtherDelegation.name)
     private readonly otherDelegationModel: Model<OtherDelegationDocument>,
+
+    @InjectModel(WeatherUpdate.name)
+    private readonly weatherUpdateModel: Model<WeatherUpdateDocument>,
   ) {}
 
+  private getDepartureCount(item: any) {
+    return (
+      (item.departure?.athletes ?? 0) +
+      (item.departure?.coaches ?? 0) +
+      (item.departure?.advance_party ?? 0) +
+      (item.departure?.trainers ?? 0)
+    )
+  }
   private getDayRange(dateString: string) {
     const [year, month, day] = dateString
       .split('-')
@@ -275,6 +291,7 @@ private getReportCutoffRange(
       depedIncidentReports,
       otherInformation,
       otherDelegations,
+      weatherUpdates,
     ] = await Promise.all([
       this.miscModel.findOne().lean(),
 
@@ -372,6 +389,18 @@ private getReportCutoffRange(
           createdAt: 1,
         })
         .lean(),
+
+      this.weatherUpdateModel
+      .find({
+        date: {
+          $gte: start,
+          $lte: end,
+        },
+      })
+      .sort({
+        createdAt: 1,
+      })
+      .lean(),
     ])
 
     const expectedDelegates =
@@ -389,6 +418,28 @@ private getReportCutoffRange(
           this.getArrivedCount(item),
         0,
       )
+
+      const totalDeparted =
+  billetingQuarters.reduce(
+    (sum, item) =>
+      sum +
+      this.getDepartureCount(item),
+    0,
+  )
+
+const remainingAfterDeparture =
+  totalArrived - totalDeparted
+
+const overallDepartureRate =
+  totalArrived > 0
+    ? Number(
+        (
+          (totalDeparted /
+            totalArrived) *
+          100
+        ).toFixed(2),
+      )
+    : 0
 
     const remainingDelegates =
       expectedDelegates - totalArrived
@@ -459,6 +510,11 @@ private getReportCutoffRange(
       rate: 0,
     }
 
+    let highestDepartureRate = {
+  region: 'N/A',
+  rate: 0,
+}
+
     const delegationArrivalProgress =
       [...billetingQuarters]
         .sort((a, b) =>
@@ -474,6 +530,31 @@ private getReportCutoffRange(
 
           const arrived =
             this.getArrivedCount(item)
+
+            const departed =
+  this.getDepartureCount(item)
+
+const departureRate =
+  arrived > 0
+    ? Number(
+        (
+          (departed / arrived) *
+          100
+        ).toFixed(2),
+      )
+    : 0
+
+if (
+  departureRate >
+  highestDepartureRate.rate
+) {
+  highestDepartureRate = {
+    region:
+      item.Delegation ??
+      'Unknown',
+    rate: departureRate,
+  }
+}
 
           const arrivalRate =
             expected > 0
@@ -518,6 +599,13 @@ private getReportCutoffRange(
 
             arrived:
               item.arrived ?? null,
+
+              departed_total: departed,
+
+departure_rate: departureRate,
+
+departure:
+  item.departure ?? null,
           }
         })
 
@@ -545,6 +633,31 @@ private getReportCutoffRange(
           trainers: 0,
         },
       )
+
+      const departureComposition =
+  billetingQuarters.reduce(
+    (acc, item) => {
+      acc.athletes +=
+        item.departure?.athletes ?? 0
+
+      acc.coaches +=
+        item.departure?.coaches ?? 0
+
+      acc.advance_party +=
+        item.departure?.advance_party ?? 0
+
+      acc.trainers +=
+        item.departure?.trainers ?? 0
+
+      return acc
+    },
+    {
+      athletes: 0,
+      coaches: 0,
+      advance_party: 0,
+      trainers: 0,
+    },
+  )
 
     const billetingQuartersAssigned =
       misc?.billeting_quarters_assigned ??
@@ -647,6 +760,12 @@ private getReportCutoffRange(
 
             arrived_total:
               this.getArrivedCount(item),
+
+              departure:
+  item.departure ?? null,
+
+departed_total:
+  this.getDepartureCount(item),
           })),
       },
 
@@ -673,10 +792,24 @@ private getReportCutoffRange(
 
         grandOverallArrivalRate,
 
+        totalDeparted,
+
+remainingAfterDeparture,
+
+overallDepartureRate,
+
+highestDepartureRate,
+
         composition: {
           total: totalArrived,
           ...arrivedComposition,
+          departure: {
+  total: totalDeparted,
+  ...departureComposition,
+},
         },
+
+        
       },
 
       currentSituation:
@@ -687,6 +820,13 @@ private getReportCutoffRange(
       depedIncidentReports,
 
       otherInformation,
+
+      weatherUpdates: weatherUpdates.map((item) => ({
+        place: item.place,
+        temperature: item.temperature,
+        warningLevel: item.warningLevel,
+        description: item.description,
+      })),
     }
 
     const saved =

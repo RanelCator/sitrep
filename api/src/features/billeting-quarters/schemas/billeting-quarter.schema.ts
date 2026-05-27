@@ -42,6 +42,24 @@ export class BilletingQuarter {
   })
   arrived?: ArrivalInfo
 
+  @Prop({
+    type: {
+      DateTimeEntered: Date,
+      athletes: Number,
+      coaches: Number,
+      advance_party: Number,
+      trainers: Number,
+    },
+    default: null,
+  })
+  departure?: {
+    DateTimeEntered?: Date
+    athletes?: number
+    coaches?: number
+    advance_party?: number
+    trainers?: number
+  }
+
   @Prop({ default: true })
   isActive!: boolean
 

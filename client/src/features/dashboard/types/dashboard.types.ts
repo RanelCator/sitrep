@@ -6,12 +6,25 @@ export interface DashboardSummary {
   reportDate: string
 
   expectedDelegates: number
+
   totalArrived: number
+
   remainingDelegates: number
 
   overallArrivalRate: number
 
   highestArrivalRate: {
+    region: string
+    rate: number
+  }
+
+  totalDeparted: number
+
+  remainingAfterDeparture: number
+
+  overallDepartureRate: number
+
+  highestDepartureRate: {
     region: string
     rate: number
   }

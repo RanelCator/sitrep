@@ -49,6 +49,11 @@ import {
   DepedIncidentReport,
   DepedIncidentReportSchema,
 } from '@/features/deped-incident-report/schema/deped-incident-report.schema'
+
+import {
+  WeatherUpdate,
+  WeatherUpdateSchema,
+} from '@/features/weather-updates/schemas/weather-update.schema'
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -94,6 +99,10 @@ import {
       {
   name: DepedIncidentReport.name,
   schema: DepedIncidentReportSchema,
+},
+{
+  name: WeatherUpdate.name,
+  schema: WeatherUpdateSchema,
 },
     ]),
   ],

@@ -211,6 +211,48 @@ private getReportCutoffRange(
     )
   }
 
+  private getWholeDayReportSectionRange(
+  dateString: string,
+  cutoff: ReportCutoff,
+) {
+  const [year, month, day] = dateString
+    .split('-')
+    .map(Number)
+
+  if (cutoff === '8am') {
+    return {
+      start: this.getManilaDate(year, month, day - 1, 0),
+      end: this.getManilaDate(year, month, day - 1, 23, 59),
+    }
+  }
+
+  return {
+    start: this.getManilaDate(year, month, day, 0),
+    end: this.getManilaDate(year, month, day, 23, 59),
+  }
+}
+
+private getCurrentSituationRange(
+  dateString: string,
+  cutoff: ReportCutoff,
+) {
+  const [year, month, day] = dateString
+    .split('-')
+    .map(Number)
+
+  if (cutoff === '8am') {
+    return {
+      start: this.getManilaDate(year, month, day - 1, 0),
+      end: this.getManilaDate(year, month, day - 1, 23, 59),
+    }
+  }
+
+  return {
+    start: this.getManilaDate(year, month, day, 0),
+    end: this.getManilaDate(year, month, day, 23, 59),
+  }
+}
+
   async findAll(query: FetchGeneratedReportsDto) {
     const page = query.page ?? 1
     const limit = query.limit ?? 10
@@ -282,6 +324,22 @@ private getReportCutoffRange(
       reportCutoff,
     )
 
+//     const {
+//   start: currentSituationStart,
+//   end: currentSituationEnd,
+// } = this.getCurrentSituationRange(
+//   reportDate,
+//   reportCutoff,
+// )
+
+const {
+  start: sectionStart,
+  end: sectionEnd,
+} = this.getWholeDayReportSectionRange(
+  reportDate,
+  reportCutoff,
+)
+
     const [
       misc,
       billetingQuarters,
@@ -303,12 +361,12 @@ private getReportCutoffRange(
         .lean(),
 
       this.highlightModel
-        .find({
-          DateTimeEntered: {
-            $gte: start,
-            $lte: end,
-          },
-        })
+  .find({
+    DateTimeEntered: {
+      $gte: sectionStart,
+      $lte: sectionEnd,
+    },
+  })
         .sort({
           DateTimeEntered: 1,
         })
@@ -319,21 +377,21 @@ private getReportCutoffRange(
         .lean(),
 
       this.currentSituationModel
-        .find({
-          DateTimeEntered: {
-            $gte: cutoffStart,
-            $lte: cutoffEnd,
-          },
-        })
-        .sort({
-          Committee: 1,
-          area_concern: 1,
-        })
-        .populate(
-          'AddedBy',
-          'name username role',
-        )
-        .lean(),
+  .find({
+    createdAt: {
+      $gte: sectionStart,
+      $lte: sectionEnd,
+    },
+  })
+  .sort({
+    Committee: 1,
+    area_concern: 1,
+  })
+  .populate(
+    'AddedBy',
+    'name username role',
+  )
+  .lean(),
 
       this.reportedIncidentModel
         .find({
@@ -391,12 +449,12 @@ private getReportCutoffRange(
         .lean(),
 
       this.weatherUpdateModel
-      .find({
-        date: {
-          $gte: start,
-          $lte: end,
-        },
-      })
+  .find({
+    date: {
+      $gte: sectionStart,
+      $lte: sectionEnd,
+    },
+  })
       .sort({
         createdAt: 1,
       })

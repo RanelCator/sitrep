@@ -38,7 +38,11 @@ import { useReportsQuery } from "@/features/reports/hooks/useReportsQuery"
 import { useGenerateDailyReportMutation } from "@/features/reports/hooks/useReportsMutation"
 import { getReportsColumns } from "@/features/reports/tables/reports.columns"
 
-type ReportCutoff = "8am" | "5pm"
+type ReportCutoff =
+  | "8am"
+  | "5pm"
+  | "--"
+  | "current-day"
 
 export function ReportsPage() {
   const [reportDate, setReportDate] =
@@ -143,10 +147,12 @@ export function ReportsPage() {
             <Select
               value={reportCutoff}
               onValueChange={(value) =>
-                setReportCutoff(value as ReportCutoff)
+                setReportCutoff(
+                  value as ReportCutoff,
+                )
               }
             >
-              <SelectTrigger className="w-full sm:w-[140px]">
+              <SelectTrigger className="w-full sm:w-[220px]">
                 <Clock className="mr-2 size-4 text-muted-foreground" />
                 <SelectValue placeholder="Cutoff" />
               </SelectTrigger>
@@ -158,6 +164,14 @@ export function ReportsPage() {
 
                 <SelectItem value="5pm">
                   5PM Report
+                </SelectItem>
+
+                <SelectItem value="--">
+                  Previous Day (Whole Day)
+                </SelectItem>
+
+                <SelectItem value="current-day">
+                  Current Day (Whole Day)
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -181,10 +195,14 @@ export function ReportsPage() {
         columns={columns}
         total={total}
         pagination={pagination}
-        onPaginationChange={setPagination}
+        onPaginationChange={
+          setPagination
+        }
         sorting={sorting}
         onSortingChange={setSorting}
-        isLoading={reportsQuery.isLoading}
+        isLoading={
+          reportsQuery.isLoading
+        }
       />
     </div>
   )

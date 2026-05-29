@@ -59,7 +59,11 @@ import {
   WeatherUpdateDocument,
 } from '@/features/weather-updates/schemas/weather-update.schema'
 
-type ReportCutoff = '8am' | '5pm'
+type ReportCutoff =
+  | '8am'
+  | '5pm'
+  | '--'
+  | 'current-day'
 
 @Injectable()
 export class ReportsService {
@@ -103,104 +107,6 @@ export class ReportsService {
       (item.departure?.trainers ?? 0)
     )
   }
-  private getDayRange(dateString: string) {
-    const [year, month, day] = dateString
-      .split('-')
-      .map(Number)
-
-    const start = new Date(
-      year,
-      month - 1,
-      day,
-      0,
-      0,
-      0,
-      0,
-    )
-
-    const end = new Date(
-      year,
-      month - 1,
-      day,
-      23,
-      59,
-      59,
-      999,
-    )
-
-    return {
-      start,
-      end,
-      entryDate: dateString,
-    }
-  }
-
-  private getManilaDate(
-  year: number,
-  month: number,
-  day: number,
-  hour: number,
-  minute = 0,
-) {
-  // Convert PH time (UTC+8) to UTC Date
-  return new Date(
-    Date.UTC(
-      year,
-      month - 1,
-      day,
-      hour - 8,
-      minute,
-      0,
-      0,
-    ),
-  )
-}
-
-private getReportCutoffRange(
-  dateString: string,
-  cutoff: ReportCutoff,
-) {
-  const [year, month, day] = dateString
-    .split('-')
-    .map(Number)
-
-  // 8AM REPORT
-  // Previous day 4PM -> Current day 7AM
-  if (cutoff === '8am') {
-    const start = this.getManilaDate(
-      year,
-      month,
-      day - 1,
-      16,
-    )
-
-    const end = this.getManilaDate(
-      year,
-      month,
-      day,
-      7,
-    )
-
-    return { start, end }
-  }
-
-  // 5PM REPORT
-  // Current day 7AM -> Current day 4PM
-  const start = this.getManilaDate(
-    year,
-    month,
-    day,
-    7,
-  )
-
-  const end = this.getManilaDate(
-    year,
-    month,
-    day,
-    16,
-  )
-  return { start, end }
-}
 
   private getArrivedCount(item: any) {
     return (
@@ -211,47 +117,161 @@ private getReportCutoffRange(
     )
   }
 
+  private getDayRange(dateString: string) {
+    return {
+      entryDate: dateString,
+    }
+  }
+
+  private getManilaDate(
+    year: number,
+    month: number,
+    day: number,
+    hour: number,
+    minute = 0,
+    second = 0,
+    millisecond = 0,
+  ) {
+    return new Date(
+      Date.UTC(
+        year,
+        month - 1,
+        day,
+        hour - 8,
+        minute,
+        second,
+        millisecond,
+      ),
+    )
+  }
+
+  private getReportCutoffRange(
+    dateString: string,
+    cutoff: ReportCutoff,
+  ) {
+    const [year, month, day] = dateString
+      .split('-')
+      .map(Number)
+
+    if (cutoff === '--') {
+      return {
+        start: this.getManilaDate(
+          year,
+          month,
+          day - 1,
+          0,
+        ),
+        end: this.getManilaDate(
+          year,
+          month,
+          day - 1,
+          23,
+          59,
+          59,
+          999,
+        ),
+      }
+    }
+
+    if (cutoff === 'current-day') {
+      return {
+        start: this.getManilaDate(
+          year,
+          month,
+          day,
+          0,
+        ),
+        end: this.getManilaDate(
+          year,
+          month,
+          day,
+          23,
+          59,
+          59,
+          999,
+        ),
+      }
+    }
+
+    if (cutoff === '8am') {
+      return {
+        start: this.getManilaDate(
+          year,
+          month,
+          day - 1,
+          16,
+        ),
+        end: this.getManilaDate(
+          year,
+          month,
+          day,
+          7,
+        ),
+      }
+    }
+
+    return {
+      start: this.getManilaDate(
+        year,
+        month,
+        day,
+        7,
+      ),
+      end: this.getManilaDate(
+        year,
+        month,
+        day,
+        16,
+      ),
+    }
+  }
+
   private getWholeDayReportSectionRange(
-  dateString: string,
-  cutoff: ReportCutoff,
-) {
-  const [year, month, day] = dateString
-    .split('-')
-    .map(Number)
+    dateString: string,
+    cutoff: ReportCutoff,
+  ) {
+    const [year, month, day] = dateString
+      .split('-')
+      .map(Number)
 
-  if (cutoff === '8am') {
+    if (cutoff === '--' || cutoff === '8am') {
+      return {
+        start: this.getManilaDate(
+          year,
+          month,
+          day - 1,
+          0,
+        ),
+        end: this.getManilaDate(
+          year,
+          month,
+          day - 1,
+          23,
+          59,
+          59,
+          999,
+        ),
+      }
+    }
+
     return {
-      start: this.getManilaDate(year, month, day - 1, 0),
-      end: this.getManilaDate(year, month, day - 1, 23, 59),
+      start: this.getManilaDate(
+        year,
+        month,
+        day,
+        0,
+      ),
+      end: this.getManilaDate(
+        year,
+        month,
+        day,
+        23,
+        59,
+        59,
+        999,
+      ),
     }
   }
-
-  return {
-    start: this.getManilaDate(year, month, day, 0),
-    end: this.getManilaDate(year, month, day, 23, 59),
-  }
-}
-
-private getCurrentSituationRange(
-  dateString: string,
-  cutoff: ReportCutoff,
-) {
-  const [year, month, day] = dateString
-    .split('-')
-    .map(Number)
-
-  if (cutoff === '8am') {
-    return {
-      start: this.getManilaDate(year, month, day - 1, 0),
-      end: this.getManilaDate(year, month, day - 1, 23, 59),
-    }
-  }
-
-  return {
-    start: this.getManilaDate(year, month, day, 0),
-    end: this.getManilaDate(year, month, day, 23, 59),
-  }
-}
 
   async findAll(query: FetchGeneratedReportsDto) {
     const page = query.page ?? 1
@@ -313,7 +333,7 @@ private getCurrentSituationRange(
     reportDate: string,
     reportCutoff: ReportCutoff = '5pm',
   ) {
-    const { start, end, entryDate } =
+    const { entryDate } =
       this.getDayRange(reportDate)
 
     const {
@@ -324,21 +344,13 @@ private getCurrentSituationRange(
       reportCutoff,
     )
 
-//     const {
-//   start: currentSituationStart,
-//   end: currentSituationEnd,
-// } = this.getCurrentSituationRange(
-//   reportDate,
-//   reportCutoff,
-// )
-
-const {
-  start: sectionStart,
-  end: sectionEnd,
-} = this.getWholeDayReportSectionRange(
-  reportDate,
-  reportCutoff,
-)
+    const {
+      start: sectionStart,
+      end: sectionEnd,
+    } = this.getWholeDayReportSectionRange(
+      reportDate,
+      reportCutoff,
+    )
 
     const [
       misc,
@@ -361,12 +373,12 @@ const {
         .lean(),
 
       this.highlightModel
-  .find({
-    DateTimeEntered: {
-      $gte: sectionStart,
-      $lte: sectionEnd,
-    },
-  })
+        .find({
+          DateTimeEntered: {
+            $gte: sectionStart,
+            $lte: sectionEnd,
+          },
+        })
         .sort({
           DateTimeEntered: 1,
         })
@@ -377,21 +389,21 @@ const {
         .lean(),
 
       this.currentSituationModel
-  .find({
-    createdAt: {
-      $gte: sectionStart,
-      $lte: sectionEnd,
-    },
-  })
-  .sort({
-    Committee: 1,
-    area_concern: 1,
-  })
-  .populate(
-    'AddedBy',
-    'name username role',
-  )
-  .lean(),
+        .find({
+          createdAt: {
+            $gte: sectionStart,
+            $lte: sectionEnd,
+          },
+        })
+        .sort({
+          Committee: 1,
+          area_concern: 1,
+        })
+        .populate(
+          'AddedBy',
+          'name username role',
+        )
+        .lean(),
 
       this.reportedIncidentModel
         .find({
@@ -449,16 +461,16 @@ const {
         .lean(),
 
       this.weatherUpdateModel
-  .find({
-    date: {
-      $gte: sectionStart,
-      $lte: sectionEnd,
-    },
-  })
-      .sort({
-        createdAt: 1,
-      })
-      .lean(),
+        .find({
+          date: {
+            $gte: sectionStart,
+            $lte: sectionEnd,
+          },
+        })
+        .sort({
+          createdAt: 1,
+        })
+        .lean(),
     ])
 
     const expectedDelegates =
@@ -472,32 +484,29 @@ const {
     const totalArrived =
       billetingQuarters.reduce(
         (sum, item) =>
-          sum +
-          this.getArrivedCount(item),
+          sum + this.getArrivedCount(item),
         0,
       )
 
-      const totalDeparted =
-  billetingQuarters.reduce(
-    (sum, item) =>
-      sum +
-      this.getDepartureCount(item),
-    0,
-  )
-
-const remainingAfterDeparture =
-  totalArrived - totalDeparted
-
-const overallDepartureRate =
-  totalArrived > 0
-    ? Number(
-        (
-          (totalDeparted /
-            totalArrived) *
-          100
-        ).toFixed(2),
+    const totalDeparted =
+      billetingQuarters.reduce(
+        (sum, item) =>
+          sum + this.getDepartureCount(item),
+        0,
       )
-    : 0
+
+    const remainingAfterDeparture =
+      totalArrived - totalDeparted
+
+    const overallDepartureRate =
+      totalArrived > 0
+        ? Number(
+            (
+              (totalDeparted / totalArrived) *
+              100
+            ).toFixed(2),
+          )
+        : 0
 
     const remainingDelegates =
       expectedDelegates - totalArrived
@@ -506,8 +515,7 @@ const overallDepartureRate =
       expectedDelegates > 0
         ? Number(
             (
-              (totalArrived /
-                expectedDelegates) *
+              (totalArrived / expectedDelegates) *
               100
             ).toFixed(2),
           )
@@ -524,8 +532,7 @@ const overallDepartureRate =
     const otherDelegationArrived =
       otherDelegations.reduce(
         (sum, item) =>
-          sum +
-          (item.arrived ?? 0),
+          sum + (item.arrived ?? 0),
         0,
       )
 
@@ -569,9 +576,9 @@ const overallDepartureRate =
     }
 
     let highestDepartureRate = {
-  region: 'N/A',
-  rate: 0,
-}
+      region: 'N/A',
+      rate: 0,
+    }
 
     const delegationArrivalProgress =
       [...billetingQuarters]
@@ -589,30 +596,30 @@ const overallDepartureRate =
           const arrived =
             this.getArrivedCount(item)
 
-            const departed =
-  this.getDepartureCount(item)
+          const departed =
+            this.getDepartureCount(item)
 
-const departureRate =
-  arrived > 0
-    ? Number(
-        (
-          (departed / arrived) *
-          100
-        ).toFixed(2),
-      )
-    : 0
+          const departureRate =
+            arrived > 0
+              ? Number(
+                  (
+                    (departed / arrived) *
+                    100
+                  ).toFixed(2),
+                )
+              : 0
 
-if (
-  departureRate >
-  highestDepartureRate.rate
-) {
-  highestDepartureRate = {
-    region:
-      item.Delegation ??
-      'Unknown',
-    rate: departureRate,
-  }
-}
+          if (
+            departureRate >
+            highestDepartureRate.rate
+          ) {
+            highestDepartureRate = {
+              region:
+                item.Delegation ??
+                'Unknown',
+              rate: departureRate,
+            }
+          }
 
           const arrivalRate =
             expected > 0
@@ -637,33 +644,27 @@ if (
           }
 
           return {
-            delegation:
-              item.Delegation,
+            delegation: item.Delegation,
 
             billeting_quarter:
               item.Billeting_Quarters,
 
-            expected_delegates:
-              expected,
+            expected_delegates: expected,
 
-            arrived_total:
-              arrived,
+            arrived_total: arrived,
 
-            arrival_rate:
-              arrivalRate,
+            arrival_rate: arrivalRate,
 
             preparedness_rating:
               item.Preparedness_Rating,
 
-            arrived:
-              item.arrived ?? null,
+            arrived: item.arrived ?? null,
 
-              departed_total: departed,
+            departed_total: departed,
 
-departure_rate: departureRate,
+            departure_rate: departureRate,
 
-departure:
-  item.departure ?? null,
+            departure: item.departure ?? null,
           }
         })
 
@@ -692,30 +693,30 @@ departure:
         },
       )
 
-      const departureComposition =
-  billetingQuarters.reduce(
-    (acc, item) => {
-      acc.athletes +=
-        item.departure?.athletes ?? 0
+    const departureComposition =
+      billetingQuarters.reduce(
+        (acc, item) => {
+          acc.athletes +=
+            item.departure?.athletes ?? 0
 
-      acc.coaches +=
-        item.departure?.coaches ?? 0
+          acc.coaches +=
+            item.departure?.coaches ?? 0
 
-      acc.advance_party +=
-        item.departure?.advance_party ?? 0
+          acc.advance_party +=
+            item.departure?.advance_party ?? 0
 
-      acc.trainers +=
-        item.departure?.trainers ?? 0
+          acc.trainers +=
+            item.departure?.trainers ?? 0
 
-      return acc
-    },
-    {
-      athletes: 0,
-      coaches: 0,
-      advance_party: 0,
-      trainers: 0,
-    },
-  )
+          return acc
+        },
+        {
+          athletes: 0,
+          coaches: 0,
+          advance_party: 0,
+          trainers: 0,
+        },
+      )
 
     const billetingQuartersAssigned =
       misc?.billeting_quarters_assigned ??
@@ -725,29 +726,32 @@ departure:
           item.Delegation.trim() !== '',
       ).length
 
+    const cutoffLabel =
+      reportCutoff === '--'
+        ? 'Previous Day'
+        : reportCutoff === 'current-day'
+          ? 'Current Day'
+          : reportCutoff === '8am'
+            ? '8AM'
+            : '5PM'
+
+    const reportDateLabel =
+      new Date(entryDate).toLocaleDateString(
+        'en-US',
+        {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        },
+      ) + ` ${cutoffLabel}`
+
     const data = {
       report: {
         title: 'Daily Situation Report',
-        reportDate:
-          new Date(entryDate).toLocaleDateString(
-            'en-US',
-            {
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric',
-            },
-          ) +
-          ` ${
-            reportCutoff === '8am'
-              ? '8AM'
-              : '5PM'
-          }`,
+        reportDate: reportDateLabel,
         entryDate,
         reportCutoff,
-        cutoffLabel:
-          reportCutoff === '8am'
-            ? '8AM'
-            : '5PM',
+        cutoffLabel,
         cutoffStart,
         cutoffEnd,
         generatedAt: new Date(),
@@ -760,22 +764,19 @@ departure:
           misc?.infrastructure ?? 0,
 
         infrastructure_description:
-          misc?.infrastructure_description ??
-          '',
+          misc?.infrastructure_description ?? '',
 
         peripherals:
           misc?.peripherals ?? 0,
 
         peripherals_description:
-          misc?.peripherals_description ??
-          '',
+          misc?.peripherals_description ?? '',
 
         sports_equipment:
           misc?.sports_equipment ?? 0,
 
         sports_equipment_description:
-          misc?.sports_equipment_description ??
-          '',
+          misc?.sports_equipment_description ?? '',
       },
 
       billetingQuartersStatus: {
@@ -783,14 +784,12 @@ departure:
           preparednessAverage,
 
         totalIdentifiedBilletingQuarters:
-          misc?.identified_billeting_quarters ??
-          0,
+          misc?.identified_billeting_quarters ?? 0,
 
         billetingQuartersAssigned,
 
         identifiedBilletingQuartersText:
-          misc?.identified_billeting_quarters_text ??
-          '',
+          misc?.identified_billeting_quarters_text ?? '',
 
         list: [...billetingQuarters]
           .sort((a, b) =>
@@ -804,8 +803,7 @@ departure:
             billeting_quarter:
               item.Billeting_Quarters,
 
-            delegation:
-              item.Delegation,
+            delegation: item.Delegation,
 
             preparedness_rating:
               item.Preparedness_Rating,
@@ -813,17 +811,16 @@ departure:
             expected_delegates:
               item.expected_delegates ?? 0,
 
-            arrived:
-              item.arrived ?? null,
+            arrived: item.arrived ?? null,
 
             arrived_total:
               this.getArrivedCount(item),
 
-              departure:
-  item.departure ?? null,
+            departure:
+              item.departure ?? null,
 
-departed_total:
-  this.getDepartureCount(item),
+            departed_total:
+              this.getDepartureCount(item),
           })),
       },
 
@@ -852,26 +849,23 @@ departed_total:
 
         totalDeparted,
 
-remainingAfterDeparture,
+        remainingAfterDeparture,
 
-overallDepartureRate,
+        overallDepartureRate,
 
-highestDepartureRate,
+        highestDepartureRate,
 
         composition: {
           total: totalArrived,
           ...arrivedComposition,
           departure: {
-  total: totalDeparted,
-  ...departureComposition,
-},
+            total: totalDeparted,
+            ...departureComposition,
+          },
         },
-
-        
       },
 
-      currentSituation:
-        currentSituations,
+      currentSituation: currentSituations,
 
       reportedIncidents,
 
@@ -879,12 +873,14 @@ highestDepartureRate,
 
       otherInformation,
 
-      weatherUpdates: weatherUpdates.map((item) => ({
-        place: item.place,
-        temperature: item.temperature,
-        warningLevel: item.warningLevel,
-        description: item.description,
-      })),
+      weatherUpdates: weatherUpdates.map(
+        (item) => ({
+          place: item.place,
+          temperature: item.temperature,
+          warningLevel: item.warningLevel,
+          description: item.description,
+        }),
+      ),
     }
 
     const saved =

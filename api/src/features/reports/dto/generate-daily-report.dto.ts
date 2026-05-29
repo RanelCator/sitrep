@@ -1,13 +1,25 @@
-// generate-daily-report.dto.ts
 import {
-  IsDateString,
-  IsIn,
+  IsEnum,
+  IsOptional,
+  IsString,
 } from 'class-validator'
 
+export type ReportCutoff =
+  | '8am'
+  | '5pm'
+  | '--'
+  | 'current-day'
+
 export class GenerateDailyReportDto {
-  @IsDateString()
+  @IsString()
   ReportDate!: string
 
-  @IsIn(['8am', '5pm'])
-  ReportCutoff!: '8am' | '5pm'
+  @IsOptional()
+  @IsEnum([
+    '8am',
+    '5pm',
+    '--',
+    'current-day',
+  ])
+  ReportCutoff!: ReportCutoff
 }

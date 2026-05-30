@@ -726,24 +726,22 @@ export class ReportsService {
           item.Delegation.trim() !== '',
       ).length
 
-    const cutoffLabel =
-      reportCutoff === '--'
-        ? 'Previous Day'
-        : reportCutoff === 'current-day'
-          ? 'Current Day'
-          : reportCutoff === '8am'
-            ? '8AM'
-            : '5PM'
+const cutoffLabel =
+  reportCutoff === '8am'
+    ? '8AM'
+    : reportCutoff === '5pm'
+      ? '5PM'
+      : ''
 
-    const reportDateLabel =
-      new Date(entryDate).toLocaleDateString(
-        'en-US',
-        {
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric',
-        },
-      ) + ` ${cutoffLabel}`
+const reportDateLabel =
+  `${new Date(entryDate).toLocaleDateString(
+    'en-US',
+    {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    },
+  )}${cutoffLabel ? ` ${cutoffLabel}` : ''}`
 
     const data = {
       report: {
